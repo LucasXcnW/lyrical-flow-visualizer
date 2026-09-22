@@ -11,6 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:brightness-110 active:scale-95",
         ghost: "text-muted-foreground hover:bg-secondary hover:text-foreground",
+        outline: "border border-input bg-background text-foreground hover:bg-secondary",
       },
       size: {
         default: "h-11 px-5 text-sm",
@@ -22,7 +23,7 @@ const buttonVariants = cva(
   },
 );
 
-type ButtonProps = React.ComponentProps<"button"> &
+export type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & { asChild?: boolean };
 
 function Button({ className, variant, size, asChild, ...props }: ButtonProps) {

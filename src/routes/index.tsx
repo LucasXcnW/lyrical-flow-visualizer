@@ -3,6 +3,7 @@ import { Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react
 import { useEffect, useRef, useState } from "react";
 
 import songAsset from "@/assets/siga-a-rota.mp4.asset.json";
+import coverAsset from "@/assets/siga-a-rota-capa.jpg.asset.json";
 import { Button } from "@/components/ui/button";
 
 const lyrics = [
@@ -89,12 +90,13 @@ function Index() {
           <span className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Faixa única · 2026</span>
         </header>
 
-        <section className="grid flex-1 items-center gap-12 py-10 lg:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.15fr)] lg:gap-20">
-          <div className="mx-auto w-full max-w-xl lg:mx-0">
+        <section className="grid flex-1 items-center gap-8 py-8 sm:gap-12 sm:py-10 lg:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.15fr)] lg:gap-20">
+          <div className="mx-auto w-full max-w-[280px] sm:max-w-xl lg:mx-0">
             <div className="cover-shadow relative aspect-square overflow-hidden rounded-md bg-card">
               <video
                 ref={videoRef}
                 src={songAsset.url}
+                poster={coverAsset.url}
                 preload="metadata"
                 playsInline
                 muted={muted}
@@ -117,17 +119,17 @@ function Index() {
                 {isPlaying ? <Pause className="size-6 fill-current" /> : <Play className="ml-0.5 size-6 fill-current" />}
               </Button>
             </div>
-            <div className="mt-7 flex items-end justify-between gap-4">
+            <div className="mt-5 flex items-end justify-between gap-4 sm:mt-7">
               <div>
                 <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">Em reprodução</p>
-                <h1 className="font-display text-4xl font-bold sm:text-5xl">Siga a Rota</h1>
+                <h1 className="font-display text-3xl font-bold sm:text-5xl">Siga a Rota</h1>
                 <p className="mt-2 text-base text-muted-foreground">Canção educativa · Prevenção e segurança</p>
               </div>
               <span className="hidden text-sm tabular-nums text-muted-foreground sm:block">{formatTime(duration)}</span>
             </div>
           </div>
 
-          <section className="min-w-0 lg:border-l lg:border-border/70 lg:pl-16" aria-labelledby="lyrics-title">
+          <section className="min-w-0 pb-8 lg:border-l lg:border-border/70 lg:pb-0 lg:pl-16" aria-labelledby="lyrics-title">
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">Acompanhamento</p>
@@ -138,8 +140,8 @@ function Index() {
                 {isPlaying ? "Ao vivo" : "Pausado"}
               </span>
             </div>
-            <div className="lyrics-mask h-[42vh] min-h-80 max-h-[560px] overflow-y-auto scroll-smooth pr-3 sm:h-[50vh]">
-              <div className="flex flex-col gap-4 py-[35%]">
+            <div className="lyrics-mask h-64 overflow-y-auto scroll-smooth pr-3 sm:h-[50vh] sm:min-h-80 sm:max-h-[560px]">
+              <div className="flex flex-col gap-4 py-16 sm:py-[35%]">
                 {lyrics.map((line, index) => (
                   <button
                     key={`${line.start}-${line.text}`}
