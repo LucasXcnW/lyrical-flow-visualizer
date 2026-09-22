@@ -55,6 +55,7 @@ function Index() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(174);
   const [muted, setMuted] = useState(false);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   const activeIndex = lyrics.findIndex(
     (line) => currentTime >= line.start && currentTime < line.end,
@@ -68,8 +69,19 @@ function Index() {
   const togglePlayback = async () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) await audio.play();
-    else audio.pause();
+    if (!audio.paused) {
+      audio.pause();
+      return;
+    }
+    try {
+      setPlaybackError(null);
+      audio.muted = muted;
+      await audio.play();
+    } catch {
+      setPlaybackError(
+        "O navegador bloqueou o som aqui. Abra a página em uma nova aba para ouvir a música.",
+      );
+    }
   };
 
   const seekTo = (time: number) => {
