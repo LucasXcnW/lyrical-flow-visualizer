@@ -161,7 +161,10 @@ function Index() {
                     key={`${line.start}-${line.text}`}
                     ref={(element) => { lyricRefs.current[index] = element; }}
                     type="button"
-                    onClick={() => seekTo(line.start)}
+                    onClick={() => {
+                      seekTo(line.start);
+                      if (audioRef.current?.paused) void togglePlayback();
+                    }}
                     className={`lyric-line text-left font-display text-2xl font-bold leading-tight sm:text-3xl ${
                       index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
                     }`}
