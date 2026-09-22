@@ -110,7 +110,7 @@ function Index() {
                 src={songAsset.url}
                 preload="auto"
                 playsInline
-                crossOrigin="anonymous"
+                controls={false}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={() => setIsPlaying(false)}
