@@ -66,6 +66,10 @@ function Index() {
     lyricRefs.current[activeIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [activeIndex]);
 
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.muted = muted;
+  }, [muted]);
+
   const togglePlayback = async () => {
     const audio = audioRef.current;
     if (!audio) return;
