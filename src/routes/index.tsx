@@ -108,8 +108,9 @@ function Index() {
               <audio
                 ref={audioRef}
                 src={songAsset.url}
-                preload="metadata"
-                muted={muted}
+                preload="auto"
+                playsInline
+                crossOrigin="anonymous"
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={() => setIsPlaying(false)}
