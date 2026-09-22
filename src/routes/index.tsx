@@ -55,6 +55,7 @@ function Index() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(174);
   const [muted, setMuted] = useState(false);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   const activeIndex = lyrics.findIndex(
     (line) => currentTime >= line.start && currentTime < line.end,
@@ -65,11 +66,26 @@ function Index() {
     lyricRefs.current[activeIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [activeIndex]);
 
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.muted = muted;
+  }, [muted]);
+
   const togglePlayback = async () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) await audio.play();
-    else audio.pause();
+    if (!audio.paused) {
+      audio.pause();
+      return;
+    }
+    try {
+      setPlaybackError(null);
+      audio.muted = muted;
+      await audio.play();
+    } catch {
+      setPlaybackError(
+        "O navegador bloqueou o som aqui. Abra a página em uma nova aba para ouvir a música.",
+      );
+    }
   };
 
   const seekTo = (time: number) => {
@@ -96,8 +112,9 @@ function Index() {
               <audio
                 ref={audioRef}
                 src={songAsset.url}
-                preload="metadata"
-                muted={muted}
+                preload="auto"
+                playsInline
+                controls={false}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={() => setIsPlaying(false)}
@@ -144,7 +161,10 @@ function Index() {
                     key={`${line.start}-${line.text}`}
                     ref={(element) => { lyricRefs.current[index] = element; }}
                     type="button"
-                    onClick={() => seekTo(line.start)}
+                    onClick={() => {
+                      seekTo(line.start);
+                      if (audioRef.current?.paused) void togglePlayback();
+                    }}
                     className={`lyric-line text-left font-display text-2xl font-bold leading-tight sm:text-3xl ${
                       index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
                     }`}
@@ -160,6 +180,11 @@ function Index() {
 
       <aside className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-player/95 px-4 py-4 shadow-2xl backdrop-blur-xl sm:px-8">
         <div className="mx-auto flex max-w-[1500px] flex-col gap-3">
+          {playbackError ? (
+            <p role="alert" className="rounded-md bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
+              {playbackError}
+            </p>
+          ) : null}
           <div className="flex items-center gap-3">
             <span className="w-11 text-right text-xs tabular-nums text-muted-foreground">{formatTime(currentTime)}</span>
             <input
