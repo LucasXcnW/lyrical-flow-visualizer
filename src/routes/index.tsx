@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import songAsset from "@/assets/siga-a-rota.mp4.asset.json";
+import songAsset from "@/assets/siga-a-rota.mp3.asset.json";
 import coverAsset from "@/assets/siga-a-rota-capa.jpg.asset.json";
 import { Button } from "@/components/ui/button";
 
@@ -49,7 +49,7 @@ function formatTime(seconds: number) {
 }
 
 function Index() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const lyricRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -66,17 +66,17 @@ function Index() {
   }, [activeIndex]);
 
   const togglePlayback = async () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) await video.play();
-    else video.pause();
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) await audio.play();
+    else audio.pause();
   };
 
   const seekTo = (time: number) => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.currentTime = Math.max(0, Math.min(duration, time));
-    setCurrentTime(video.currentTime);
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = Math.max(0, Math.min(duration, time));
+    setCurrentTime(audio.currentTime);
   };
 
   return (
@@ -93,22 +93,19 @@ function Index() {
         <section className="grid flex-1 items-center gap-8 py-8 sm:gap-12 sm:py-10 lg:grid-cols-[minmax(320px,0.85fr)_minmax(430px,1.15fr)] lg:gap-20">
           <div className="mx-auto w-full max-w-[280px] sm:max-w-xl lg:mx-0">
             <div className="cover-shadow relative aspect-square overflow-hidden rounded-md bg-card">
-              <video
-                ref={videoRef}
+              <audio
+                ref={audioRef}
                 src={songAsset.url}
-                poster={coverAsset.url}
                 preload="metadata"
-                playsInline
                 muted={muted}
-                className="size-full object-cover"
-                onClick={togglePlayback}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={() => setIsPlaying(false)}
                 onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
                 onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-                aria-label="Vídeo de Siga a Rota"
+                aria-label="Áudio de Siga a Rota"
               />
+              <img src={coverAsset.url} alt="Capa da música Siga a Rota" className="size-full object-cover" />
               <Button
                 type="button"
                 size="player"
