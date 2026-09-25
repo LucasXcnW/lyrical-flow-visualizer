@@ -36,6 +36,7 @@ const lyrics = [
   { start: 85.5, text: "Di-di-di-di-diê" },
   { start: 88.2, text: "Di-di-di-di-diê-iê-iê" },
   { start: 90.9, text: "Di-di-di-di-diê" },
+  { start: 94.2, text: "♪" },
   { start: 115.1, text: "No quadro de energia, perigo no ar" },
   { start: 118.6, text: "Classe C tem que usar CO2 para apagar" },
   { start: 125.1, text: "Sem água por perto, choque vai dar" },
