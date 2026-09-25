@@ -89,7 +89,9 @@ function Index() {
     const viewport = lyricsViewportRef.current;
     const line = lyricRefs.current[activeIndex];
     if (!viewport || !line) return;
-    viewport.scrollTo({ top: line.offsetTop - viewport.offsetTop - viewport.clientHeight / 2 + line.clientHeight / 2, behavior: "smooth" });
+    const lineTop = line.getBoundingClientRect().top;
+    const viewportTop = viewport.getBoundingClientRect().top;
+    viewport.scrollTo({ top: viewport.scrollTop + lineTop - viewportTop - viewport.clientHeight / 2 + line.clientHeight / 2, behavior: "smooth" });
   }, [activeIndex]);
 
   useEffect(() => {
@@ -132,7 +134,7 @@ function Index() {
           <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><Disc3 className="size-4" /><span>Faixa única · 2026</span></div>
         </header>
 
-        <section className="grid flex-1 items-center gap-9 py-10 sm:gap-14 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20">
+        <section className="grid flex-1 content-start items-center gap-9 py-10 sm:gap-14 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
           <div className="mx-auto w-full max-w-[300px] sm:max-w-[440px] lg:mx-0">
             <div className="cover-shadow relative aspect-square overflow-hidden rounded-md bg-card">
               <audio
