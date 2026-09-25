@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Disc3, Music2, Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { siSpotify } from "simple-icons";
 
 import songAsset from "@/assets/siga-a-rota.mp3.asset.json";
 import coverAsset from "@/assets/siga-a-rota-capa.jpg.asset.json";
@@ -164,6 +165,7 @@ function Index() {
                 <h1 className="font-display text-4xl font-bold sm:text-5xl">Siga a Rota</h1>
                 <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground">Lucas Tavares · Gabriel Massal · Vinícius Wendel</p>
                 <p className="mt-2 text-sm text-muted-foreground">Canção educativa · Prevenção e segurança</p>
+                <p className="mt-5 flex items-center gap-2 text-xs font-semibold text-muted-foreground"><svg viewBox="0 0 24 24" className="size-5 text-primary" fill="currentColor" role="img" aria-label="Spotify"><path d={siSpotify.path} /></svg> Player inspirado no Spotify</p>
               </div>
             </div>
           </div>
