@@ -198,7 +198,7 @@ function Index() {
                       seekTo(line.start);
                       if (audioRef.current?.paused) void togglePlayback();
                     }}
-                     className={`lyric-line h-auto w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-xl font-bold leading-snug hover:bg-transparent sm:text-3xl ${
+                     className={`lyric-line relative h-auto w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-xl font-bold leading-snug hover:bg-transparent sm:text-3xl ${
                       index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
                     }`}
                   >
