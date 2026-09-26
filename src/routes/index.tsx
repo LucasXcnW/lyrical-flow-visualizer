@@ -135,7 +135,7 @@ function Index() {
       <div className="mx-auto flex min-h-dvh max-w-[1440px] flex-col px-5 pb-40 pt-6 sm:px-8 lg:px-14 lg:pb-32">
         <header className="flex items-center gap-3 border-b border-border pb-5">
           <span className="size-9 shrink-0" aria-hidden="true"><img src={brandAsset.url} alt="" className="size-full object-contain" /></span>
-          <span className="truncate text-sm font-bold uppercase tracking-[0.16em]">Rota Sessions</span>
+          <span className="truncate text-sm font-bold uppercase tracking-[0.16em]">Técnico de Segurança do Trabalho-30</span>
         </header>
 
         <section className="grid flex-1 content-start items-center gap-9 py-10 sm:gap-14 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
