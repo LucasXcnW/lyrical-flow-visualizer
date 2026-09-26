@@ -84,12 +84,13 @@ function Index() {
   const [muted, setMuted] = useState(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
-  const activeIndex = (() => {
-    for (let i = lyrics.length - 1; i >= 0; i--) {
-      if (currentTime >= lyrics[i].start) return i;
+  let activeIndex = -1;
+  for (let i = lyrics.length - 1; i >= 0; i--) {
+    if (currentTime >= lyrics[i]!.start) {
+      activeIndex = i;
+      break;
     }
-    return -1;
-  })();
+  }
 
   useEffect(() => {
     if (activeIndex < 0) return;
