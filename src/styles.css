@@ -164,14 +164,31 @@
   .lyrics-mask::-webkit-scrollbar { display: none; }
 
   .lyric-line {
-    color: var(--muted-foreground);
-    opacity: 0.8;
-    transition: color 300ms ease, opacity 300ms ease, transform 300ms ease;
+    color: var(--muted-foreground) !important;
+    opacity: 0.75;
+    transition: color 300ms ease, opacity 300ms ease, transform 300ms ease, text-shadow 300ms ease;
   }
 
-  .lyric-line:hover { color: var(--foreground); opacity: 0.82; }
-  .lyric-line.is-past { opacity: 0.5; }
-  .lyric-line.is-active { color: var(--foreground); opacity: 1; transform: translateX(8px); }
+  .lyric-line:hover { color: var(--foreground) !important; opacity: 0.85; }
+  .lyric-line.is-past { opacity: 0.4; }
+  .lyric-line.is-active {
+    color: var(--primary) !important;
+    opacity: 1;
+    transform: translateX(10px) scale(1.02);
+    text-shadow: 0 0 28px color-mix(in oklch, var(--primary) 40%, transparent);
+  }
+  .lyric-line.is-active::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    height: 60%;
+    width: 3px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 12px color-mix(in oklch, var(--primary) 55%, transparent);
+  }
 
   .progress-range {
     appearance: none;
