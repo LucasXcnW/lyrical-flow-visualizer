@@ -5,7 +5,7 @@ import { siSpotify } from "simple-icons";
 
 import songAsset from "@/assets/siga-a-rota.mp3.asset.json";
 import coverAsset from "@/assets/siga-a-rota-capa.jpg.asset.json";
-import brandAsset from "@/assets/seguranca-do-trabalho.png.asset.json";
+import brandAsset from "@/assets/seguranca-do-trabalho-filled.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 const lyrics = [
