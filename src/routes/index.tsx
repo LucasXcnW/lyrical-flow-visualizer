@@ -5,6 +5,7 @@ import { siSpotify } from "simple-icons";
 
 import songAsset from "@/assets/siga-a-rota.mp3.asset.json";
 import coverAsset from "@/assets/siga-a-rota-capa.jpg.asset.json";
+import brandAsset from "@/assets/seguranca-do-trabalho.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 const lyrics = [
@@ -127,12 +128,9 @@ function Index() {
   return (
     <main className="min-h-dvh bg-background text-foreground">
       <div className="mx-auto flex min-h-dvh max-w-[1440px] flex-col px-5 pb-40 pt-6 sm:px-8 lg:px-14 lg:pb-32">
-        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border pb-5">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground" aria-hidden="true"><Music2 className="size-5" /></span>
-            <span className="truncate text-sm font-bold uppercase tracking-[0.16em]">Rota Sessions</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><Disc3 className="size-4" /><span>Faixa única · 2026</span></div>
+        <header className="flex items-center gap-3 border-b border-border pb-5">
+          <span className="size-9 shrink-0" aria-hidden="true"><img src={brandAsset.url} alt="" className="size-full object-contain" /></span>
+          <span className="truncate text-sm font-bold uppercase tracking-[0.16em]">Rota Sessions</span>
         </header>
 
         <section className="grid flex-1 content-start items-center gap-9 py-10 sm:gap-14 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
