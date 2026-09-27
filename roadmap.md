@@ -1,3 +1,6 @@
 - [x] Substituir a transcrição pela letra original e ajustar os tempos ao áudio.
 - [x] Atualizar a página para um player escuro, com música à esquerda e letra à direita no computador, ícones musicais e créditos dos autores.
 - [x] Verificar a reprodução, o acompanhamento da letra e a apresentação em computador e celular.
+- [ ] Animar a capa apenas durante a reprodução, com movimento reduzido respeitado.
+- [ ] Melhorar o layout e a acessibilidade do player em celulares pequenos e tablets, sem alterar letra ou controles.
+- [ ] Verificar reprodução, sincronização, layout responsivo e erros de compilação.
