@@ -202,10 +202,6 @@
     transition: all 0.3s ease-in-out;
   }
 
-  .lyric-line::before {
-    transition: all 0.3s ease-in-out;
-  }
-
   .lyric-line:hover { color: var(--foreground) !important; opacity: 0.85; }
   .lyric-line.is-past { opacity: 0.4; }
   .lyric-line.is-active {
