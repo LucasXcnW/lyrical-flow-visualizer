@@ -191,6 +191,7 @@
   .lyrics-mask {
     mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
     scrollbar-width: none;
+    scroll-behavior: smooth;
   }
 
   .lyrics-mask::-webkit-scrollbar { display: none; }
@@ -198,7 +199,11 @@
   .lyric-line {
     color: var(--muted-foreground) !important;
     opacity: 0.75;
-    transition: color 300ms ease, opacity 300ms ease, transform 300ms ease, text-shadow 300ms ease;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .lyric-line::before {
+    transition: all 0.3s ease-in-out;
   }
 
   .lyric-line:hover { color: var(--foreground) !important; opacity: 0.85; }
