@@ -77,6 +77,7 @@ function Index() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const lyricsViewportRef = useRef<HTMLDivElement>(null);
   const lyricRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const hasRevealedLyricsRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(169.53);
@@ -96,9 +97,19 @@ function Index() {
     const viewport = lyricsViewportRef.current;
     const line = lyricRefs.current[activeIndex];
     if (!viewport || !line) return;
-    const lineTop = line.getBoundingClientRect().top;
-    const viewportTop = viewport.getBoundingClientRect().top;
-    viewport.scrollTo({ top: viewport.scrollTop + lineTop - viewportTop - viewport.clientHeight / 2 + line.clientHeight / 2, behavior: "smooth" });
+    const lineRect = line.getBoundingClientRect();
+    const viewportRect = viewport.getBoundingClientRect();
+    const offset = lineRect.top + lineRect.height / 2 - viewportRect.top - viewportRect.height / 2;
+    if (Math.abs(offset) > viewportRect.height * 0.12) {
+      viewport.scrollTo({ top: viewport.scrollTop + offset, behavior: "smooth" });
+    }
+    if (activeIndex > 0 && !hasRevealedLyricsRef.current && window.innerWidth < 1024) {
+      const dockTop = document.querySelector(".player-dock")?.getBoundingClientRect().top ?? window.innerHeight;
+      if (viewportRect.bottom > dockTop - 12) {
+        window.scrollBy({ top: viewportRect.top - 20, behavior: "smooth" });
+      }
+      hasRevealedLyricsRef.current = true;
+    }
   }, [activeIndex]);
 
   useEffect(() => {
@@ -132,15 +143,15 @@ function Index() {
 
   return (
     <main className="min-h-dvh bg-background text-foreground">
-      <div className="mx-auto flex min-h-dvh max-w-[1440px] flex-col px-5 pb-40 pt-6 sm:px-8 lg:px-14 lg:pb-32">
-        <header className="flex items-center gap-3 border-b border-border pb-5">
+      <div className="player-content mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
+        <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border pb-4 sm:pb-5">
           <span className="size-9 shrink-0" aria-hidden="true"><img src={brandAsset.url} alt="" className="size-full object-contain" /></span>
           <span className="truncate text-sm font-bold uppercase tracking-[0.16em]">Técnico de Segurança do Trabalho-30</span>
         </header>
 
-        <section className="grid flex-1 content-start items-center gap-9 py-10 sm:gap-14 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
-          <div className="mx-auto w-full max-w-[300px] sm:max-w-[440px] lg:mx-0">
-            <div className="cover-shadow relative aspect-square overflow-hidden rounded-md bg-card">
+        <section className="grid flex-1 content-start items-center gap-6 py-6 sm:gap-14 sm:py-10 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
+          <div className="mx-auto w-full min-w-0 max-w-[min(100%,38dvh,340px)] sm:max-w-[440px] lg:mx-0">
+            <div className={`cover-shadow cover-stage relative aspect-square overflow-hidden rounded-md bg-card ${isPlaying ? "is-playing" : ""}`}>
               <audio
                 ref={audioRef}
                 src={songAsset.url}
@@ -154,7 +165,7 @@ function Index() {
                 onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
                 aria-label="Áudio de Siga a Rota"
               />
-              <img src={coverAsset.url} alt="Capa da música Siga a Rota" className="size-full object-cover" />
+              <img src={coverAsset.url} alt="Capa da música Siga a Rota" className="cover-art size-full object-cover" />
               <Button
                 type="button"
                 size="player"
@@ -165,29 +176,29 @@ function Index() {
                 {isPlaying ? <Pause className="size-6 fill-current" /> : <Play className="ml-0.5 size-6 fill-current" />}
               </Button>
             </div>
-            <div className="mt-6 flex items-end justify-between gap-4">
-              <div>
+             <div className="mt-4 flex items-end justify-between gap-4 sm:mt-6">
+               <div className="min-w-0">
                 <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-primary"><Music2 className="size-4" /> Música</p>
-                <h1 className="font-display text-4xl font-bold sm:text-5xl">Siga a Rota</h1>
-                <p className="mt-3 text-sm font-semibold leading-relaxed text-foreground">Lucas Tavares · Gabriel Massal · Vinícius Wendel</p>
-                <p className="mt-2 text-sm text-muted-foreground">Canção educativa · Prevenção e segurança</p>
+                 <h1 className="font-display text-3xl font-bold sm:text-5xl">Siga a Rota</h1>
+                 <p className="mt-2 text-sm font-semibold leading-snug text-foreground sm:mt-3 sm:leading-relaxed">Lucas Tavares · Gabriel Massal · Vinícius Wendel</p>
+                 <p className="mt-1 text-xs leading-snug text-muted-foreground sm:mt-2 sm:text-sm">Canção educativa · Prevenção e segurança</p>
               </div>
             </div>
           </div>
 
-          <section className="min-w-0 pb-8 lg:border-l lg:border-border lg:pb-0 lg:pl-16" aria-labelledby="lyrics-title">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
+           <section className="min-w-0 pb-8 lg:border-l lg:border-border lg:pb-0 lg:pl-16" aria-labelledby="lyrics-title">
+             <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:mb-6">
+               <div className="min-w-0">
                 <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-primary"><Music2 className="size-4" /> Siga a Rota</p>
-                <h2 id="lyrics-title" className="font-display text-3xl font-bold">Letra</h2>
+                 <h2 id="lyrics-title" className="font-display text-2xl font-bold sm:text-3xl">Letra</h2>
               </div>
               <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 <span className={isPlaying ? "size-2 animate-pulse rounded-full bg-primary" : "size-2 rounded-full bg-muted-foreground"} />
                 {isPlaying ? "Ao vivo" : "Pausado"}
               </span>
             </div>
-             <div ref={lyricsViewportRef} className="lyrics-mask relative h-72 overflow-y-auto scroll-smooth pr-4 sm:h-[55vh] sm:min-h-96 sm:max-h-[620px]">
-               <div className="flex flex-col gap-5 py-28 sm:py-48">
+              <div ref={lyricsViewportRef} className="lyrics-mask relative h-[clamp(250px,38dvh,420px)] overflow-y-auto overscroll-contain scroll-smooth pr-3 sm:h-[55vh] sm:min-h-96 sm:max-h-[620px] sm:pr-4">
+                <div className="flex flex-col gap-4 py-[19dvh] sm:gap-5 sm:py-48">
                 {lyrics.map((line, index) => (
                    <Button
                     key={`${line.start}-${line.text}`}
@@ -198,7 +209,7 @@ function Index() {
                       seekTo(line.start);
                       if (audioRef.current?.paused) void togglePlayback();
                     }}
-                     className={`lyric-line relative h-auto w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-xl font-bold leading-snug hover:bg-transparent sm:text-3xl ${
+                      className={`lyric-line relative min-h-11 w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-lg font-bold leading-snug hover:bg-transparent sm:h-auto sm:text-3xl ${
                       index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
                     }`}
                   >
@@ -211,14 +222,15 @@ function Index() {
         </section>
       </div>
 
-      <aside className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-player/95 px-4 py-4 shadow-2xl backdrop-blur-xl sm:px-8">
-        <div className="mx-auto flex max-w-[1500px] flex-col gap-3">
+       <aside className="player-dock fixed inset-x-0 bottom-0 z-20 border-t border-border bg-player/95 px-4 pt-2 shadow-2xl backdrop-blur-xl sm:px-8 sm:pt-4">
+         <div className="mx-auto flex max-w-[1500px] flex-col gap-1 sm:gap-3">
           {playbackError ? (
             <p role="alert" className="rounded-md bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
               {playbackError}
             </p>
           ) : null}
-          <div className="flex items-center gap-3">
+           <p className="truncate text-xs font-bold sm:hidden">Siga a Rota <span className="font-normal text-muted-foreground">· Lucas Tavares · Gabriel Massal · Vinícius Wendel</span></p>
+           <div className="flex items-center gap-2 sm:gap-3">
             <span className="w-11 text-right text-xs tabular-nums text-muted-foreground">{formatTime(currentTime)}</span>
             <input
               aria-label="Progresso da música"
@@ -228,12 +240,12 @@ function Index() {
               step="0.1"
               value={currentTime}
               onChange={(event) => seekTo(Number(event.target.value))}
-              className="progress-range min-w-0 flex-1"
+               className="progress-range min-w-0 flex-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                style={{ "--progress": `${(currentTime / (duration || 169.53)) * 100}%` } as React.CSSProperties}
             />
             <span className="w-11 text-xs tabular-nums text-muted-foreground">{formatTime(duration)}</span>
           </div>
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
             <div className="hidden min-w-0 sm:block">
               <p className="truncate text-sm font-bold">Siga a Rota</p>
                <p className="truncate text-xs text-muted-foreground">Lucas Tavares · Gabriel Massal · Vinícius Wendel</p>

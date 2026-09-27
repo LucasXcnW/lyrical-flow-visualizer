@@ -152,8 +152,40 @@
 }
 
 @layer components {
+  .player-content {
+    padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .player-dock {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
   .cover-shadow {
     box-shadow: 0 24px 80px oklch(0 0 0 / 0.38);
+  }
+
+  .cover-stage {
+    transform: perspective(900px) rotateX(0) rotateY(0) scale(1);
+    transition: transform 900ms ease, box-shadow 900ms ease;
+  }
+
+  .cover-stage.is-playing {
+    transform: perspective(900px) rotateX(1deg) rotateY(-1deg) scale(1.008);
+    box-shadow: 0 28px 85px color-mix(in oklch, var(--primary) 20%, transparent);
+  }
+
+  .cover-art {
+    transition: transform 900ms ease;
+  }
+
+  .cover-stage.is-playing .cover-art {
+    animation: cover-breathe 8s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  @keyframes cover-breathe {
+    from { transform: scale(1.008) translate3d(-0.15%, 0.15%, 0); }
+    to { transform: scale(1.035) translate3d(0.15%, -0.15%, 0); }
   }
 
   .lyrics-mask {
@@ -190,11 +222,18 @@
     box-shadow: 0 0 12px color-mix(in oklch, var(--primary) 55%, transparent);
   }
 
+  .lyric-line:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  .lyric-line:active { opacity: 1; }
+
   .progress-range {
     appearance: none;
-    height: 4px;
+    height: 44px;
     border-radius: 999px;
-     background: linear-gradient(to right, var(--primary) var(--progress), var(--border) var(--progress));
+    background: linear-gradient(to right, var(--primary) var(--progress), var(--border) var(--progress)) center / 100% 4px no-repeat;
     cursor: pointer;
   }
 
@@ -206,8 +245,27 @@
     background: var(--foreground);
     box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 35%, transparent);
   }
+
+  .progress-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--foreground);
+  }
+}
+
+@media (min-width: 640px) {
+  .player-dock { padding-bottom: 16px; }
+}
+
+@media (max-width: 639px) {
+  .lyric-line.is-active { transform: translateX(4px); }
+  .lyric-line.is-active::before { left: -9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  .cover-stage.is-playing { transform: none; }
+  .cover-stage.is-playing .cover-art { animation: none; will-change: auto; }
 }
