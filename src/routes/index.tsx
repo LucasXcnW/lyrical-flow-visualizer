@@ -77,6 +77,7 @@ function Index() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const lyricsViewportRef = useRef<HTMLDivElement>(null);
   const lyricRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const hasRevealedLyricsRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(169.53);
@@ -101,6 +102,13 @@ function Index() {
     const offset = lineRect.top + lineRect.height / 2 - viewportRect.top - viewportRect.height / 2;
     if (Math.abs(offset) > viewportRect.height * 0.12) {
       viewport.scrollTo({ top: viewport.scrollTop + offset, behavior: "smooth" });
+    }
+    if (activeIndex > 0 && !hasRevealedLyricsRef.current && window.innerWidth < 1024) {
+      const dockTop = document.querySelector(".player-dock")?.getBoundingClientRect().top ?? window.innerHeight;
+      if (viewportRect.bottom > dockTop - 12) {
+        window.scrollBy({ top: viewportRect.top - 20, behavior: "smooth" });
+      }
+      hasRevealedLyricsRef.current = true;
     }
   }, [activeIndex]);
 
