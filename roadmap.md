@@ -4,3 +4,4 @@
 - [x] Animar a capa apenas durante a reprodução, com movimento reduzido respeitado.
 - [x] Melhorar o layout e a acessibilidade do player em celulares pequenos e tablets, sem alterar letra ou controles.
 - [x] Verificar reprodução, sincronização, layout responsivo e erros de compilação.
+- [ ] Acompanhar o áudio com requestAnimationFrame, antecipar sutilmente o destaque e suavizar a rolagem e a transição dos versos.
