@@ -85,7 +85,7 @@ function Index() {
   const updateActiveLine = (time: number) => {
     const lyricTime = time + 0.12;
     for (let i = lyrics.length - 1; i >= 0; i--) {
-      if (lyricTime >= lyrics[i].start) {
+      if (lyricTime >= lyrics[i]!.start) {
         if (activeIndexRef.current !== i) {
           activeIndexRef.current = i;
           setActiveIndex(i);
