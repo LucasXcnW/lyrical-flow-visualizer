@@ -78,6 +78,7 @@ function Index() {
   const lyricsViewportRef = useRef<HTMLDivElement>(null);
   const lyricRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const hasRevealedLyricsRef = useRef(false);
+  const animationFrameRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(169.53);
@@ -85,8 +86,9 @@ function Index() {
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   let activeIndex = -1;
+  const lyricTime = currentTime + (isPlaying ? 0.12 : 0);
   for (let i = lyrics.length - 1; i >= 0; i--) {
-    if (currentTime >= lyrics[i]!.start) {
+    if (lyricTime >= lyrics[i]!.start) {
       activeIndex = i;
       break;
     }
@@ -100,8 +102,9 @@ function Index() {
     const lineRect = line.getBoundingClientRect();
     const viewportRect = viewport.getBoundingClientRect();
     const offset = lineRect.top + lineRect.height / 2 - viewportRect.top - viewportRect.height / 2;
-    if (Math.abs(offset) > viewportRect.height * 0.12) {
-      viewport.scrollTo({ top: viewport.scrollTop + offset, behavior: "smooth" });
+    const target = Math.max(0, Math.min(viewport.scrollHeight - viewport.clientHeight, viewport.scrollTop + offset));
+    if (Math.abs(target - viewport.scrollTop) > 8) {
+      viewport.scrollTo({ top: target, behavior: "smooth" });
     }
     if (activeIndex > 0 && !hasRevealedLyricsRef.current && window.innerWidth < 1024) {
       const dockTop = document.querySelector(".player-dock")?.getBoundingClientRect().top ?? window.innerHeight;
@@ -111,6 +114,24 @@ function Index() {
       hasRevealedLyricsRef.current = true;
     }
   }, [activeIndex]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const followAudio = () => {
+      if (audio.paused || audio.ended) return;
+      setCurrentTime(audio.currentTime);
+      animationFrameRef.current = window.requestAnimationFrame(followAudio);
+    };
+
+    animationFrameRef.current = window.requestAnimationFrame(followAudio);
+    return () => {
+      if (animationFrameRef.current !== null) window.cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    };
+  }, [isPlaying]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = muted;
@@ -158,10 +179,11 @@ function Index() {
                 preload="auto"
                 playsInline
                 controls={false}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                onEnded={() => setIsPlaying(false)}
+                onPlay={(event) => { setCurrentTime(event.currentTarget.currentTime); setIsPlaying(true); }}
+                onPause={(event) => { setCurrentTime(event.currentTarget.currentTime); setIsPlaying(false); }}
+                onEnded={(event) => { setCurrentTime(event.currentTarget.currentTime); setIsPlaying(false); }}
                 onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+                onSeeked={(event) => setCurrentTime(event.currentTarget.currentTime)}
                 onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
                 aria-label="Áudio de Siga a Rota"
               />
