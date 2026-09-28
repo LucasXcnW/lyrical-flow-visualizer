@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import songAsset from "@/assets/siga-a-rota.mp3.asset.json";
 import coverAsset from "@/assets/siga-a-rota-capa.jpg.asset.json";
 import brandAsset from "@/assets/seguranca-do-trabalho-filled.png.asset.json";
+import { ProgressBar } from "@/components/player/ProgressBar";
 import { Button } from "@/components/ui/button";
 
 const lyrics = [
@@ -67,37 +68,37 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function formatTime(seconds: number) {
-  if (!Number.isFinite(seconds)) return "0:00";
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}:${Math.floor(seconds % 60).toString().padStart(2, "0")}`;
-}
-
 function Index() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const lyricsViewportRef = useRef<HTMLDivElement>(null);
   const lyricRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const hasRevealedLyricsRef = useRef(false);
   const animationFrameRef = useRef<number | null>(null);
+  const manualScrollUntilRef = useRef(0);
+  const resumeScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeIndexRef = useRef(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(169.53);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
-  let activeIndex = -1;
-  const lyricTime = currentTime + (isPlaying ? 0.12 : 0);
-  for (let i = lyrics.length - 1; i >= 0; i--) {
-    if (lyricTime >= lyrics[i]!.start) {
-      activeIndex = i;
-      break;
+  const updateActiveLine = (time: number) => {
+    const lyricTime = time + 0.12;
+    for (let i = lyrics.length - 1; i >= 0; i--) {
+      if (lyricTime >= lyrics[i].start) {
+        if (activeIndexRef.current !== i) {
+          activeIndexRef.current = i;
+          setActiveIndex(i);
+        }
+        return;
+      }
     }
-  }
+  };
 
-  useEffect(() => {
-    if (activeIndex < 0) return;
+  const centerActiveLine = (index: number) => {
+    if (Date.now() < manualScrollUntilRef.current) return;
     const viewport = lyricsViewportRef.current;
-    const line = lyricRefs.current[activeIndex];
+    const line = lyricRefs.current[index];
     if (!viewport || !line) return;
     const lineRect = line.getBoundingClientRect();
     const viewportRect = viewport.getBoundingClientRect();
@@ -106,14 +107,46 @@ function Index() {
     if (Math.abs(target - viewport.scrollTop) > 8) {
       viewport.scrollTo({ top: target, behavior: "smooth" });
     }
-    if (activeIndex > 0 && !hasRevealedLyricsRef.current && window.innerWidth < 1024) {
+    if (index > 0 && !hasRevealedLyricsRef.current && window.innerWidth < 1024) {
       const dockTop = document.querySelector(".player-dock")?.getBoundingClientRect().top ?? window.innerHeight;
       if (viewportRect.bottom > dockTop - 12) {
         window.scrollBy({ top: viewportRect.top - 20, behavior: "smooth" });
       }
       hasRevealedLyricsRef.current = true;
     }
+  };
+
+  useEffect(() => {
+    centerActiveLine(activeIndex);
   }, [activeIndex]);
+
+  useEffect(() => {
+    const viewport = lyricsViewportRef.current;
+    if (!viewport) return;
+    const suspendAutoScroll = () => {
+      manualScrollUntilRef.current = Date.now() + 3500;
+      if (resumeScrollTimerRef.current !== null) clearTimeout(resumeScrollTimerRef.current);
+      resumeScrollTimerRef.current = setTimeout(() => {
+        manualScrollUntilRef.current = 0;
+        centerActiveLine(activeIndexRef.current);
+        resumeScrollTimerRef.current = null;
+      }, 3500);
+    };
+    viewport.addEventListener("wheel", suspendAutoScroll, { passive: true });
+    viewport.addEventListener("touchmove", suspendAutoScroll, { passive: true });
+    viewport.addEventListener("pointerdown", suspendAutoScroll, { passive: true });
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) suspendAutoScroll();
+    };
+    viewport.addEventListener("keydown", onKeyDown);
+    return () => {
+      viewport.removeEventListener("wheel", suspendAutoScroll);
+      viewport.removeEventListener("touchmove", suspendAutoScroll);
+      viewport.removeEventListener("pointerdown", suspendAutoScroll);
+      viewport.removeEventListener("keydown", onKeyDown);
+      if (resumeScrollTimerRef.current !== null) clearTimeout(resumeScrollTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -122,7 +155,7 @@ function Index() {
 
     const followAudio = () => {
       if (audio.paused || audio.ended) return;
-      setCurrentTime(audio.currentTime);
+      updateActiveLine(audio.currentTime);
       animationFrameRef.current = window.requestAnimationFrame(followAudio);
     };
 
@@ -158,8 +191,9 @@ function Index() {
   const seekTo = (time: number) => {
     const audio = audioRef.current;
     if (!audio) return;
+    const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 169.53;
     audio.currentTime = Math.max(0, Math.min(duration, time));
-    setCurrentTime(audio.currentTime);
+    updateActiveLine(audio.currentTime);
   };
 
   return (
@@ -179,12 +213,11 @@ function Index() {
                 preload="auto"
                 playsInline
                 controls={false}
-                onPlay={(event) => { setCurrentTime(event.currentTarget.currentTime); setIsPlaying(true); }}
-                onPause={(event) => { setCurrentTime(event.currentTarget.currentTime); setIsPlaying(false); }}
-                onEnded={(event) => { setCurrentTime(event.currentTarget.currentTime); setIsPlaying(false); }}
-                onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
-                onSeeked={(event) => setCurrentTime(event.currentTarget.currentTime)}
-                onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
+                 onPlay={(event) => { updateActiveLine(event.currentTarget.currentTime); setIsPlaying(true); }}
+                 onPause={(event) => { updateActiveLine(event.currentTarget.currentTime); setIsPlaying(false); }}
+                 onEnded={(event) => { updateActiveLine(event.currentTarget.currentTime); setIsPlaying(false); }}
+                 onTimeUpdate={(event) => updateActiveLine(event.currentTarget.currentTime)}
+                 onSeeked={(event) => updateActiveLine(event.currentTarget.currentTime)}
                 aria-label="Áudio de Siga a Rota"
               />
               <img src={coverAsset.url} alt="Capa da música Siga a Rota" className="cover-art size-full object-cover" />
@@ -231,6 +264,7 @@ function Index() {
                       seekTo(line.start);
                       if (audioRef.current?.paused) void togglePlayback();
                     }}
+                      aria-current={index === activeIndex ? "true" : undefined}
                       className={`lyric-line relative min-h-11 w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-lg font-bold leading-snug hover:bg-transparent sm:h-auto sm:text-3xl ${
                       index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
                     }`}
@@ -252,34 +286,20 @@ function Index() {
             </p>
           ) : null}
            <p className="truncate text-xs font-bold sm:hidden">Siga a Rota <span className="font-normal text-muted-foreground">· Lucas Tavares · Gabriel Massal · Vinícius Wendel</span></p>
-           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="w-11 text-right text-xs tabular-nums text-muted-foreground">{formatTime(currentTime)}</span>
-            <input
-              aria-label="Progresso da música"
-              type="range"
-              min="0"
-               max={duration || 169.53}
-              step="0.1"
-              value={currentTime}
-              onChange={(event) => seekTo(Number(event.target.value))}
-               className="progress-range min-w-0 flex-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-               style={{ "--progress": `${(currentTime / (duration || 169.53)) * 100}%` } as React.CSSProperties}
-            />
-            <span className="w-11 text-xs tabular-nums text-muted-foreground">{formatTime(duration)}</span>
-          </div>
+            <ProgressBar audioRef={audioRef} onSeek={seekTo} />
            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
             <div className="hidden min-w-0 sm:block">
               <p className="truncate text-sm font-bold">Siga a Rota</p>
                <p className="truncate text-xs text-muted-foreground">Lucas Tavares · Gabriel Massal · Vinícius Wendel</p>
             </div>
             <div className="col-start-2 flex items-center gap-2">
-              <Button type="button" variant="ghost" size="icon" onClick={() => seekTo(currentTime - 10)} aria-label="Voltar 10 segundos">
+               <Button type="button" variant="ghost" size="icon" onClick={() => seekTo((audioRef.current?.currentTime ?? 0) - 10)} aria-label="Voltar 10 segundos">
                 <RotateCcw className="size-5" />
               </Button>
               <Button type="button" size="player" onClick={togglePlayback} aria-label={isPlaying ? "Pausar" : "Reproduzir"}>
                 {isPlaying ? <Pause className="size-6 fill-current" /> : <Play className="ml-0.5 size-6 fill-current" />}
               </Button>
-              <Button type="button" variant="ghost" size="icon" onClick={() => seekTo(currentTime + 10)} aria-label="Avançar 10 segundos">
+               <Button type="button" variant="ghost" size="icon" onClick={() => seekTo((audioRef.current?.currentTime ?? 0) + 10)} aria-label="Avançar 10 segundos">
                 <RotateCw className="size-5" />
               </Button>
             </div>
