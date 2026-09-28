@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep playback timing in the audio element; isolate per-frame progress painting in ProgressBar and rerender lyrics only when their active index changes, to avoid 60 FPS page rerenders.

@@ -62,6 +62,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-player: var(--player);
+  --color-lyric-active: var(--lyric-active);
 }
 
 :root {
@@ -86,6 +87,7 @@
   --input: oklch(0.33 0.006 260);
   --ring: oklch(0.78 0.18 150);
   --player: oklch(0.14 0.005 260);
+  --lyric-active: oklch(0.72 0.19 18);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -122,6 +124,7 @@
   --input: oklch(0.33 0.006 260);
   --ring: oklch(0.78 0.18 150);
   --player: oklch(0.14 0.005 260);
+  --lyric-active: oklch(0.72 0.19 18);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -189,6 +192,7 @@
   }
 
   .lyrics-mask {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
     scrollbar-width: none;
     scroll-behavior: smooth;
@@ -205,10 +209,10 @@
   .lyric-line:hover { color: var(--foreground) !important; opacity: 0.85; }
   .lyric-line.is-past { opacity: 0.4; }
   .lyric-line.is-active {
-    color: var(--primary) !important;
+    color: var(--lyric-active) !important;
     opacity: 1;
     transform: translateX(10px) scale(1.02);
-    text-shadow: 0 0 28px color-mix(in oklch, var(--primary) 40%, transparent);
+    text-shadow: 0 0 28px color-mix(in oklch, var(--lyric-active) 40%, transparent);
   }
   .lyric-line::before {
     content: "";
@@ -219,8 +223,8 @@
     width: 3px;
     transform: translateY(-50%);
     border-radius: 999px;
-    background: var(--primary);
-    box-shadow: 0 0 12px color-mix(in oklch, var(--primary) 55%, transparent);
+    background: var(--lyric-active);
+    box-shadow: 0 0 12px color-mix(in oklch, var(--lyric-active) 55%, transparent);
     opacity: 0;
     transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
