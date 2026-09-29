@@ -54,6 +54,31 @@ const lyrics = [
   { start: 159.6, text: "Segurança sempre em primeiro lugar" },
 ];
 
+
+type SceneMode = "default" | "smoke" | "exit" | "route" | "extinguisher" | "electrical" | "assembly";
+
+const sceneModes: Record<number, SceneMode> = {
+  1: "smoke",
+  2: "smoke",
+  3: "route",
+  4: "route",
+  5: "route",
+  6: "exit",
+  7: "exit",
+  15: "extinguisher",
+  16: "extinguisher",
+  17: "extinguisher",
+  18: "extinguisher",
+  19: "extinguisher",
+  20: "extinguisher",
+  29: "electrical",
+  30: "electrical",
+  31: "electrical",
+  32: "electrical",
+  33: "route",
+  34: "assembly",
+};
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -204,7 +229,7 @@ function Index() {
   };
 
   return (
-    <main className="safety-scene relative min-h-dvh overflow-x-clip bg-background text-foreground">
+    <main className="safety-scene relative min-h-dvh overflow-x-clip bg-background text-foreground" data-scene={sceneModes[activeIndex] ?? "default"}>
       <div className="safety-background" aria-hidden="true">
         <div className="safety-tape safety-tape-left" />
         <div className="safety-tape safety-tape-right" />
@@ -214,6 +239,18 @@ function Index() {
         <div className="emergency-sign emergency-sign-side">SAÍDA →</div>
         <div className="route-glow route-glow-one" />
         <div className="route-glow route-glow-two" />
+        <div className="safety-extinguisher">
+          <span className="safety-extinguisher-body">EXTINTOR</span>
+          <span className="safety-extinguisher-tag">A · B</span>
+        </div>
+        <div className="electrical-warning">
+          <span className="electrical-warning-symbol">⚡</span>
+          <span>RISCO ELÉTRICO</span>
+        </div>
+        <div className="assembly-point">
+          <span className="assembly-point-icon">●</span>
+          <span>PONTO DE ENCONTRO</span>
+        </div>
       </div>
       <div className="player-content relative z-10 mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
         <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border pb-4 sm:pb-5">
