@@ -83,7 +83,9 @@ function Index() {
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   const updateActiveLine = (time: number) => {
-    const lyricTime = time + 0.12;
+    // The audio clock is the single source of truth. Visual transitions must never
+    // advance or delay lyric timing.
+    const lyricTime = Math.max(0, time);
     for (let i = lyrics.length - 1; i >= 0; i--) {
       if (lyricTime >= lyrics[i]!.start) {
         if (activeIndexRef.current !== i) {
@@ -155,7 +157,12 @@ function Index() {
 
     const followAudio = () => {
       if (audio.paused || audio.ended) return;
-      updateActiveLine(audio.currentTime);
+      const currentTime = audio.currentTime;
+      updateActiveLine(currentTime);
+      // One shared audio clock drives both lyrics and the progress bar.
+      audio.dispatchEvent(new CustomEvent("lyric-clock", {
+        detail: { currentTime },
+      }));
       animationFrameRef.current = window.requestAnimationFrame(followAudio);
     };
 
@@ -201,7 +208,10 @@ function Index() {
       <div className="player-content mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
         <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border pb-4 sm:pb-5">
           <span className="size-9 shrink-0" aria-hidden="true"><img src={brandAsset.url} alt="" className="size-full object-contain" /></span>
-          <span className="truncate text-sm font-bold uppercase tracking-[0.16em]">Técnico de Segurança do Trabalho-30</span>
+          <span className="min-w-0 text-xs font-bold uppercase leading-tight tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
+            <span className="block sm:inline">Técnico de Segurança do Trabalho</span>
+            <span className="mt-0.5 block sm:ml-2 sm:mt-0 sm:inline">— 30</span>
+          </span>
         </header>
 
         <section className="grid flex-1 content-start items-center gap-6 py-6 sm:gap-14 sm:py-10 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
