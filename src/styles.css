@@ -301,6 +301,123 @@
     transform: rotate(-10deg);
   }
 
+
+  .safety-extinguisher,
+  .electrical-warning,
+  .assembly-point {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid color-mix(in oklch, var(--safety-yellow) 42%, transparent);
+    border-radius: 6px;
+    background: color-mix(in oklch, var(--background) 82%, var(--safety-yellow));
+    color: var(--safety-yellow);
+    font-family: var(--font-sans);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+    filter: blur(1px);
+    transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1), filter 600ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 600ms ease;
+  }
+
+  .safety-extinguisher {
+    left: 8%;
+    top: 56%;
+    min-width: 126px;
+    padding: 10px 12px;
+    box-shadow: 0 0 0 transparent;
+  }
+
+  .safety-extinguisher-body::before {
+    content: "▮";
+    margin-right: 4px;
+  }
+
+  .safety-extinguisher-tag {
+    border-left: 1px solid color-mix(in oklch, var(--safety-yellow) 35%, transparent);
+    padding-left: 8px;
+    font-size: 8px;
+  }
+
+  .electrical-warning {
+    right: 8%;
+    top: 48%;
+    min-width: 136px;
+    padding: 10px 12px;
+    color: oklch(0.76 0.2 27);
+    border-color: color-mix(in oklch, oklch(0.76 0.2 27) 45%, transparent);
+    box-shadow: 0 0 0 transparent;
+  }
+
+  .electrical-warning-symbol {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .assembly-point {
+    right: 8%;
+    bottom: 20%;
+    min-width: 150px;
+    padding: 10px 12px;
+    color: var(--safety-green);
+    border-color: color-mix(in oklch, var(--safety-green) 48%, transparent);
+    box-shadow: 0 0 0 transparent;
+  }
+
+  .assembly-point-icon {
+    display: grid;
+    place-items: center;
+    width: 19px;
+    height: 19px;
+    border: 2px solid currentColor;
+    border-radius: 999px;
+    font-size: 7px;
+  }
+
+  .safety-scene[data-scene="smoke"] .safety-smoke {
+    opacity: 1;
+    transform: scale(1.12);
+    filter: blur(18px);
+  }
+
+  .safety-scene[data-scene="exit"] .emergency-sign {
+    opacity: 0.62;
+    transform: scale(1.05);
+    box-shadow: 0 0 42px color-mix(in oklch, var(--safety-green) 24%, transparent);
+  }
+
+  .safety-scene[data-scene="route"] .route-glow {
+    opacity: 0.72;
+    transform: rotate(12deg) scaleX(1.08);
+  }
+
+  .safety-scene[data-scene="route"] .route-glow-two {
+    transform: rotate(-10deg) scaleX(1.08);
+  }
+
+  .safety-scene[data-scene="extinguisher"] .safety-extinguisher,
+  .safety-scene[data-scene="electrical"] .electrical-warning,
+  .safety-scene[data-scene="assembly"] .assembly-point {
+    opacity: 0.82;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  .safety-scene[data-scene="extinguisher"] .safety-extinguisher {
+    box-shadow: 0 0 34px color-mix(in oklch, var(--safety-yellow) 18%, transparent);
+  }
+
+  .safety-scene[data-scene="electrical"] .electrical-warning {
+    box-shadow: 0 0 34px color-mix(in oklch, oklch(0.76 0.2 27) 18%, transparent);
+  }
+
+  .safety-scene[data-scene="assembly"] .assembly-point {
+    box-shadow: 0 0 34px color-mix(in oklch, var(--safety-green) 18%, transparent);
+  }
+
   @keyframes safety-tape-drift {
     from { translate: 0 0; }
     to { translate: 24px -10px; }
@@ -448,6 +565,21 @@
     padding-left: max(12px, env(safe-area-inset-left, 0px));
     padding-right: max(12px, env(safe-area-inset-right, 0px));
   }
+
+
+  .safety-extinguisher,
+  .electrical-warning,
+  .assembly-point {
+    font-size: 7px;
+    min-width: 0;
+    padding: 8px 9px;
+    letter-spacing: 0.08em;
+  }
+  .safety-extinguisher { left: 3%; top: 58%; }
+  .electrical-warning { right: 3%; top: 46%; }
+  .assembly-point { right: 3%; bottom: 24%; }
+  .safety-scene[data-scene="exit"] .emergency-sign { opacity: 0.48; }
+  .safety-scene[data-scene="route"] .route-glow { opacity: 0.52; }
 
   .lyric-line.is-active { transform: translateX(4px) scale(1.01); }
   .lyric-line.is-active::before { left: -9px; }
