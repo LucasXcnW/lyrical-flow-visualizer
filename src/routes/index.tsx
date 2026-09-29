@@ -204,8 +204,18 @@ function Index() {
   };
 
   return (
-    <main className="min-h-dvh bg-background text-foreground">
-      <div className="player-content mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
+    <main className="safety-scene relative min-h-dvh overflow-x-clip bg-background text-foreground">
+      <div className="safety-background" aria-hidden="true">
+        <div className="safety-tape safety-tape-left" />
+        <div className="safety-tape safety-tape-right" />
+        <div className="safety-smoke safety-smoke-one" />
+        <div className="safety-smoke safety-smoke-two" />
+        <div className="emergency-sign emergency-sign-top">← SAÍDA</div>
+        <div className="emergency-sign emergency-sign-side">SAÍDA →</div>
+        <div className="route-glow route-glow-one" />
+        <div className="route-glow route-glow-two" />
+      </div>
+      <div className="player-content relative z-10 mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
         <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border pb-4 sm:pb-5">
           <span className="size-9 shrink-0" aria-hidden="true"><img src={brandAsset.url} alt="" className="size-full object-contain" /></span>
           <span className="min-w-0 text-xs font-bold uppercase leading-tight tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
