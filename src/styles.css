@@ -63,6 +63,8 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-player: var(--player);
   --color-lyric-active: var(--lyric-active);
+  --color-safety-yellow: var(--safety-yellow);
+  --color-safety-green: var(--safety-green);
 }
 
 :root {
@@ -88,6 +90,8 @@
   --ring: oklch(0.78 0.18 150);
   --player: oklch(0.14 0.005 260);
   --lyric-active: oklch(0.78 0.18 150);
+  --safety-yellow: oklch(0.82 0.18 92);
+  --safety-green: oklch(0.74 0.19 150);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -125,6 +129,8 @@
   --ring: oklch(0.78 0.18 150);
   --player: oklch(0.14 0.005 260);
   --lyric-active: oklch(0.78 0.18 150);
+  --safety-yellow: oklch(0.82 0.18 92);
+  --safety-green: oklch(0.74 0.19 150);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -155,6 +161,283 @@
 }
 
 @layer components {
+  .safety-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 78% 18%, color-mix(in oklch, var(--safety-green) 8%, transparent), transparent 28%),
+      radial-gradient(circle at 18% 76%, oklch(0.55 0.015 260 / 0.07), transparent 30%);
+  }
+
+  .safety-tape {
+    position: absolute;
+    width: 240px;
+    height: 26px;
+    opacity: 0.13;
+    background: repeating-linear-gradient(
+      135deg,
+      var(--safety-yellow) 0 18px,
+      oklch(0.12 0.008 260) 18px 36px
+    );
+    box-shadow: 0 0 30px oklch(0 0 0 / 0.25);
+    filter: blur(0.2px);
+  }
+
+  .safety-tape-left {
+    top: 16%;
+    left: -74px;
+    transform: rotate(-33deg);
+    animation: safety-tape-drift 13s ease-in-out infinite alternate;
+  }
+
+  .safety-tape-right {
+    right: -78px;
+    bottom: 22%;
+    transform: rotate(-33deg);
+    animation: safety-tape-drift 16s ease-in-out infinite alternate-reverse;
+  }
+
+  .safety-smoke {
+    position: absolute;
+    width: 42vw;
+    height: 30vw;
+    max-width: 620px;
+    max-height: 430px;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 35% 55%, oklch(0.65 0.012 260 / 0.11), transparent 52%),
+      radial-gradient(ellipse at 65% 42%, oklch(0.45 0.012 260 / 0.10), transparent 58%);
+    filter: blur(22px);
+    opacity: 0.65;
+  }
+
+  .safety-smoke-one {
+    top: -8%;
+    left: -12%;
+    animation: smoke-float-one 18s ease-in-out infinite alternate;
+  }
+
+  .safety-smoke-two {
+    right: -14%;
+    bottom: 8%;
+    animation: smoke-float-two 22s ease-in-out infinite alternate;
+  }
+
+  .emergency-sign {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 116px;
+    height: 38px;
+    padding: 0 13px;
+    border: 1px solid color-mix(in oklch, var(--safety-green) 55%, transparent);
+    border-radius: 4px;
+    background: color-mix(in oklch, var(--safety-green) 18%, oklch(0.08 0.006 260));
+    color: var(--safety-green);
+    font-family: var(--font-sans);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-shadow: 0 0 14px color-mix(in oklch, var(--safety-green) 65%, transparent);
+    box-shadow: 0 0 28px color-mix(in oklch, var(--safety-green) 12%, transparent);
+    opacity: 0.2;
+    filter: blur(0.2px);
+  }
+
+  .emergency-sign::before {
+    content: "●";
+    margin-right: 7px;
+    font-size: 7px;
+  }
+
+  .emergency-sign-top {
+    top: 13%;
+    right: 7%;
+    transform: rotate(2deg);
+    animation: sign-pulse 7s ease-in-out infinite;
+  }
+
+  .emergency-sign-side {
+    left: 3%;
+    bottom: 17%;
+    transform: rotate(-3deg);
+    animation: sign-pulse 9s ease-in-out infinite reverse;
+  }
+
+  .route-glow {
+    position: absolute;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, var(--safety-green), transparent);
+    opacity: 0.16;
+    box-shadow: 0 0 18px color-mix(in oklch, var(--safety-green) 65%, transparent);
+  }
+
+  .route-glow::after {
+    content: "›  ›  ›";
+    position: absolute;
+    right: -8px;
+    top: -9px;
+    color: var(--safety-green);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+  }
+
+  .route-glow-one {
+    width: 34vw;
+    top: 38%;
+    left: -6%;
+    transform: rotate(12deg);
+  }
+
+  .route-glow-two {
+    width: 30vw;
+    right: -5%;
+    bottom: 37%;
+    transform: rotate(-10deg);
+  }
+
+
+  .safety-extinguisher,
+  .electrical-warning,
+  .assembly-point {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid color-mix(in oklch, var(--safety-yellow) 42%, transparent);
+    border-radius: 6px;
+    background: color-mix(in oklch, var(--background) 82%, var(--safety-yellow));
+    color: var(--safety-yellow);
+    font-family: var(--font-sans);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+    filter: blur(1px);
+    transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1), filter 600ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 600ms ease;
+  }
+
+  .safety-extinguisher {
+    left: 8%;
+    top: 56%;
+    min-width: 126px;
+    padding: 10px 12px;
+    box-shadow: 0 0 0 transparent;
+  }
+
+  .safety-extinguisher-body::before {
+    content: "▮";
+    margin-right: 4px;
+  }
+
+  .safety-extinguisher-tag {
+    border-left: 1px solid color-mix(in oklch, var(--safety-yellow) 35%, transparent);
+    padding-left: 8px;
+    font-size: 8px;
+  }
+
+  .electrical-warning {
+    right: 8%;
+    top: 48%;
+    min-width: 136px;
+    padding: 10px 12px;
+    color: oklch(0.76 0.2 27);
+    border-color: color-mix(in oklch, oklch(0.76 0.2 27) 45%, transparent);
+    box-shadow: 0 0 0 transparent;
+  }
+
+  .electrical-warning-symbol {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .assembly-point {
+    right: 8%;
+    bottom: 20%;
+    min-width: 150px;
+    padding: 10px 12px;
+    color: var(--safety-green);
+    border-color: color-mix(in oklch, var(--safety-green) 48%, transparent);
+    box-shadow: 0 0 0 transparent;
+  }
+
+  .assembly-point-icon {
+    display: grid;
+    place-items: center;
+    width: 19px;
+    height: 19px;
+    border: 2px solid currentColor;
+    border-radius: 999px;
+    font-size: 7px;
+  }
+
+  .safety-scene[data-scene="smoke"] .safety-smoke {
+    opacity: 1;
+    transform: scale(1.12);
+    filter: blur(18px);
+  }
+
+  .safety-scene[data-scene="exit"] .emergency-sign {
+    opacity: 0.62;
+    transform: scale(1.05);
+    box-shadow: 0 0 42px color-mix(in oklch, var(--safety-green) 24%, transparent);
+  }
+
+  .safety-scene[data-scene="route"] .route-glow {
+    opacity: 0.72;
+    transform: rotate(12deg) scaleX(1.08);
+  }
+
+  .safety-scene[data-scene="route"] .route-glow-two {
+    transform: rotate(-10deg) scaleX(1.08);
+  }
+
+  .safety-scene[data-scene="extinguisher"] .safety-extinguisher,
+  .safety-scene[data-scene="electrical"] .electrical-warning,
+  .safety-scene[data-scene="assembly"] .assembly-point {
+    opacity: 0.82;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  .safety-scene[data-scene="extinguisher"] .safety-extinguisher {
+    box-shadow: 0 0 34px color-mix(in oklch, var(--safety-yellow) 18%, transparent);
+  }
+
+  .safety-scene[data-scene="electrical"] .electrical-warning {
+    box-shadow: 0 0 34px color-mix(in oklch, oklch(0.76 0.2 27) 18%, transparent);
+  }
+
+  .safety-scene[data-scene="assembly"] .assembly-point {
+    box-shadow: 0 0 34px color-mix(in oklch, var(--safety-green) 18%, transparent);
+  }
+
+  @keyframes safety-tape-drift {
+    from { translate: 0 0; }
+    to { translate: 24px -10px; }
+  }
+
+  @keyframes smoke-float-one {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(7%, 5%, 0) scale(1.08); }
+  }
+
+  @keyframes smoke-float-two {
+    from { transform: translate3d(0, 0, 0) scale(1.04); }
+    to { transform: translate3d(-8%, -6%, 0) scale(0.96); }
+  }
+
+  @keyframes sign-pulse {
+    0%, 100% { opacity: 0.14; }
+    50% { opacity: 0.27; }
+  }
+
   .player-content {
     padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
   }
@@ -268,6 +551,12 @@
 }
 
 @media (max-width: 639px) {
+  .safety-tape { opacity: 0.09; transform: scale(0.78) rotate(-33deg); }
+  .safety-smoke { width: 72vw; height: 54vw; opacity: 0.45; filter: blur(18px); }
+  .emergency-sign { min-width: 92px; height: 31px; padding: 0 9px; font-size: 7px; opacity: 0.15; }
+  .emergency-sign-top { top: 10%; right: -1%; }
+  .emergency-sign-side { left: -3%; bottom: 21%; }
+  .route-glow { opacity: 0.09; }
   .player-content {
     padding-bottom: calc(154px + env(safe-area-inset-bottom, 0px));
   }
@@ -277,11 +566,30 @@
     padding-right: max(12px, env(safe-area-inset-right, 0px));
   }
 
+
+  .safety-extinguisher,
+  .electrical-warning,
+  .assembly-point {
+    font-size: 7px;
+    min-width: 0;
+    padding: 8px 9px;
+    letter-spacing: 0.08em;
+  }
+  .safety-extinguisher { left: 3%; top: 58%; }
+  .electrical-warning { right: 3%; top: 46%; }
+  .assembly-point { right: 3%; bottom: 24%; }
+  .safety-scene[data-scene="exit"] .emergency-sign { opacity: 0.48; }
+  .safety-scene[data-scene="route"] .route-glow { opacity: 0.52; }
+
   .lyric-line.is-active { transform: translateX(4px) scale(1.01); }
   .lyric-line.is-active::before { left: -9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .safety-tape,
+  .safety-smoke,
+  .emergency-sign { animation: none !important; }
+
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   .cover-stage.is-playing { transform: none; }
   .cover-stage.is-playing .cover-art { animation: none; will-change: auto; }
