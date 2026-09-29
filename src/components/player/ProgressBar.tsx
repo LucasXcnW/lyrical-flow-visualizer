@@ -23,51 +23,43 @@ export function ProgressBar({ audioRef, onSeek }: ProgressBarProps) {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    let frame: number | null = null;
 
-    const paint = () => {
-      const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : FALLBACK_DURATION;
-      const current = Math.max(0, Math.min(audio.currentTime || 0, duration));
+    const paint = (currentTime = audio.currentTime) => {
+      const duration =
+        Number.isFinite(audio.duration) && audio.duration > 0
+          ? audio.duration
+          : FALLBACK_DURATION;
+      const current = Math.max(0, Math.min(currentTime || 0, duration));
+
       if (rangeRef.current) {
         rangeRef.current.max = String(duration);
         rangeRef.current.value = String(current);
         rangeRef.current.style.setProperty("--progress", `${(current / duration) * 100}%`);
       }
       if (elapsedRef.current) elapsedRef.current.textContent = formatTime(current);
-      if (remainingRef.current) remainingRef.current.textContent = `-${formatTime(Math.max(0, duration - current))}`;
+      if (remainingRef.current) {
+        remainingRef.current.textContent = `-${formatTime(Math.max(0, duration - current))}`;
+      }
     };
 
-    const tick = () => {
-      paint();
-      if (!audio.paused && !audio.ended) frame = requestAnimationFrame(tick);
-      else frame = null;
+    const onLyricClock = (event: Event) => {
+      const currentTime = (event as CustomEvent<{ currentTime: number }>).detail?.currentTime;
+      paint(Number.isFinite(currentTime) ? currentTime : audio.currentTime);
     };
-    const stop = () => {
-      if (frame !== null) cancelAnimationFrame(frame);
-      frame = null;
-      paint();
-    };
-    const start = () => {
-      stop();
-      frame = requestAnimationFrame(tick);
-    };
+    const onSeeked = () => paint();
+    const onMetadata = () => paint();
 
     paint();
-    if (!audio.paused) start();
-    audio.addEventListener("play", start);
-    audio.addEventListener("pause", stop);
-    audio.addEventListener("ended", stop);
-    audio.addEventListener("seeked", paint);
-    audio.addEventListener("loadedmetadata", paint);
-    audio.addEventListener("durationchange", paint);
+    audio.addEventListener("lyric-clock", onLyricClock);
+    audio.addEventListener("seeked", onSeeked);
+    audio.addEventListener("loadedmetadata", onMetadata);
+    audio.addEventListener("durationchange", onMetadata);
+
     return () => {
-      stop();
-      audio.removeEventListener("play", start);
-      audio.removeEventListener("pause", stop);
-      audio.removeEventListener("ended", stop);
-      audio.removeEventListener("seeked", paint);
-      audio.removeEventListener("loadedmetadata", paint);
-      audio.removeEventListener("durationchange", paint);
+      audio.removeEventListener("lyric-clock", onLyricClock);
+      audio.removeEventListener("seeked", onSeeked);
+      audio.removeEventListener("loadedmetadata", onMetadata);
+      audio.removeEventListener("durationchange", onMetadata);
     };
   }, [audioRef]);
 
