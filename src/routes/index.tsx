@@ -310,7 +310,7 @@ function Index() {
               </div>
             </div>
               <div ref={lyricsViewportRef} className="lyrics-mask relative order-3 h-[clamp(250px,38dvh,420px)] overflow-y-auto overscroll-contain scroll-smooth pr-3 sm:h-[55vh] sm:min-h-96 sm:max-h-[620px] sm:pr-4 lg:h-[clamp(260px,42dvh,500px)] lg:min-h-0">
-                <div className="flex flex-col gap-4 py-[19dvh] sm:gap-5 sm:py-48">
+                <div className="flex flex-col gap-4 py-[19dvh] sm:gap-5 sm:py-48 lg:py-24">
                 {lyrics.map((line, index) => (
                    <Button
                     key={`${line.start}-${line.text}`}
