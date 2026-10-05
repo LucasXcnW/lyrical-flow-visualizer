@@ -549,10 +549,6 @@
   .player-dock { padding-bottom: 16px; }
 }
 
-@media (min-width: 1024px) {
-  .safety-stage { margin-top: -108px; }
-}
-
 @media (max-width: 639px) {
   .safety-stage { height: 80px; }
   .safety-tape { opacity: 0.15; transform: scale(0.78) rotate(-33deg); }
