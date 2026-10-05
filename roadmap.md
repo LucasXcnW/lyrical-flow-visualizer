@@ -6,3 +6,4 @@
 - [x] Verificar reprodução, sincronização, layout responsivo e erros de compilação.
 - [x] Acompanhar o áudio com requestAnimationFrame, antecipar sutilmente o destaque e suavizar a rolagem e a transição dos versos.
 - [x] Isolar a barra de progresso, sincronizar apenas mudanças de verso e respeitar a rolagem manual por 3,5 segundos.
+- [x] Colocar os efeitos visuais em uma faixa própria, sem ficarem atrás da capa ou da letra em celular e computador.
