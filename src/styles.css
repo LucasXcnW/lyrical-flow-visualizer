@@ -161,22 +161,23 @@
 }
 
 @layer components {
-  .safety-background {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
+  .safety-stage {
+    position: relative;
+    width: 100%;
+    height: 96px;
+    align-self: start;
     pointer-events: none;
     overflow: hidden;
-    background:
-      radial-gradient(circle at 78% 18%, color-mix(in oklch, var(--safety-green) 8%, transparent), transparent 28%),
-      radial-gradient(circle at 18% 76%, oklch(0.55 0.015 260 / 0.07), transparent 30%);
+    border-top: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+    border-bottom: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+    background: radial-gradient(ellipse at 50% 50%, color-mix(in oklch, var(--safety-green) 9%, transparent), transparent 68%);
   }
 
   .safety-tape {
     position: absolute;
     width: 240px;
     height: 26px;
-    opacity: 0.13;
+    opacity: 0.22;
     background: repeating-linear-gradient(
       135deg,
       var(--safety-yellow) 0 18px,
@@ -187,25 +188,23 @@
   }
 
   .safety-tape-left {
-    top: 16%;
-    left: -74px;
+    top: -8px;
+    left: -85px;
     transform: rotate(-33deg);
     animation: safety-tape-drift 13s ease-in-out infinite alternate;
   }
 
   .safety-tape-right {
-    right: -78px;
-    bottom: 22%;
+    right: -85px;
+    bottom: -8px;
     transform: rotate(-33deg);
     animation: safety-tape-drift 16s ease-in-out infinite alternate-reverse;
   }
 
   .safety-smoke {
     position: absolute;
-    width: 42vw;
-    height: 30vw;
-    max-width: 620px;
-    max-height: 430px;
+    width: 40%;
+    height: 160px;
     border-radius: 50%;
     background:
       radial-gradient(ellipse at 35% 55%, oklch(0.65 0.012 260 / 0.11), transparent 52%),
@@ -215,14 +214,14 @@
   }
 
   .safety-smoke-one {
-    top: -8%;
-    left: -12%;
+    top: -40%;
+    left: 0;
     animation: smoke-float-one 18s ease-in-out infinite alternate;
   }
 
   .safety-smoke-two {
-    right: -14%;
-    bottom: 8%;
+    right: 0;
+    bottom: -40%;
     animation: smoke-float-two 22s ease-in-out infinite alternate;
   }
 
@@ -244,7 +243,7 @@
     letter-spacing: 0.16em;
     text-shadow: 0 0 14px color-mix(in oklch, var(--safety-green) 65%, transparent);
     box-shadow: 0 0 28px color-mix(in oklch, var(--safety-green) 12%, transparent);
-    opacity: 0.2;
+    opacity: 0.35;
     filter: blur(0.2px);
   }
 
@@ -255,15 +254,15 @@
   }
 
   .emergency-sign-top {
-    top: 13%;
-    right: 7%;
+    top: 12px;
+    right: 17%;
     transform: rotate(2deg);
     animation: sign-pulse 7s ease-in-out infinite;
   }
 
   .emergency-sign-side {
-    left: 3%;
-    bottom: 17%;
+    left: 17%;
+    bottom: 12px;
     transform: rotate(-3deg);
     animation: sign-pulse 9s ease-in-out infinite reverse;
   }
@@ -273,7 +272,7 @@
     height: 2px;
     border-radius: 999px;
     background: linear-gradient(90deg, transparent, var(--safety-green), transparent);
-    opacity: 0.16;
+    opacity: 0.28;
     box-shadow: 0 0 18px color-mix(in oklch, var(--safety-green) 65%, transparent);
   }
 
@@ -288,16 +287,16 @@
   }
 
   .route-glow-one {
-    width: 34vw;
-    top: 38%;
-    left: -6%;
+    width: 38%;
+    top: 32%;
+    left: 0;
     transform: rotate(12deg);
   }
 
   .route-glow-two {
-    width: 30vw;
-    right: -5%;
-    bottom: 37%;
+    width: 38%;
+    right: 0;
+    bottom: 32%;
     transform: rotate(-10deg);
   }
 
@@ -324,8 +323,8 @@
   }
 
   .safety-extinguisher {
-    left: 8%;
-    top: 56%;
+    left: 22%;
+    top: 42%;
     min-width: 126px;
     padding: 10px 12px;
     box-shadow: 0 0 0 transparent;
@@ -343,8 +342,8 @@
   }
 
   .electrical-warning {
-    right: 8%;
-    top: 48%;
+    right: 22%;
+    top: 42%;
     min-width: 136px;
     padding: 10px 12px;
     color: oklch(0.76 0.2 27);
@@ -358,8 +357,8 @@
   }
 
   .assembly-point {
-    right: 8%;
-    bottom: 20%;
+    right: 22%;
+    bottom: 42%;
     min-width: 150px;
     padding: 10px 12px;
     color: var(--safety-green);
@@ -551,12 +550,13 @@
 }
 
 @media (max-width: 639px) {
-  .safety-tape { opacity: 0.09; transform: scale(0.78) rotate(-33deg); }
-  .safety-smoke { width: 72vw; height: 54vw; opacity: 0.45; filter: blur(18px); }
-  .emergency-sign { min-width: 92px; height: 31px; padding: 0 9px; font-size: 7px; opacity: 0.15; }
-  .emergency-sign-top { top: 10%; right: -1%; }
-  .emergency-sign-side { left: -3%; bottom: 21%; }
-  .route-glow { opacity: 0.09; }
+  .safety-stage { height: 80px; }
+  .safety-tape { opacity: 0.15; transform: scale(0.78) rotate(-33deg); }
+  .safety-smoke { width: 60%; height: 120px; opacity: 0.45; filter: blur(18px); }
+  .emergency-sign { min-width: 92px; height: 31px; padding: 0 9px; font-size: 7px; opacity: 0.27; }
+  .emergency-sign-top { top: 7px; right: 8%; }
+  .emergency-sign-side { left: 8%; bottom: 7px; }
+  .route-glow { opacity: 0.2; }
   .player-content {
     padding-bottom: calc(154px + env(safe-area-inset-bottom, 0px));
   }
@@ -575,9 +575,9 @@
     padding: 8px 9px;
     letter-spacing: 0.08em;
   }
-  .safety-extinguisher { left: 3%; top: 58%; }
-  .electrical-warning { right: 3%; top: 46%; }
-  .assembly-point { right: 3%; bottom: 24%; }
+  .safety-extinguisher { left: 6%; top: 38%; }
+  .electrical-warning { right: 6%; top: 38%; }
+  .assembly-point { right: 6%; bottom: 38%; }
   .safety-scene[data-scene="exit"] .emergency-sign { opacity: 0.48; }
   .safety-scene[data-scene="route"] .route-glow { opacity: 0.52; }
 

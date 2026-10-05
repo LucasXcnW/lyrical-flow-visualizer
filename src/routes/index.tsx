@@ -230,28 +230,6 @@ function Index() {
 
   return (
     <main className="safety-scene relative min-h-dvh overflow-x-clip bg-background text-foreground" data-scene={sceneModes[activeIndex] ?? "default"}>
-      <div className="safety-background" aria-hidden="true">
-        <div className="safety-tape safety-tape-left" />
-        <div className="safety-tape safety-tape-right" />
-        <div className="safety-smoke safety-smoke-one" />
-        <div className="safety-smoke safety-smoke-two" />
-        <div className="emergency-sign emergency-sign-top">← SAÍDA</div>
-        <div className="emergency-sign emergency-sign-side">SAÍDA →</div>
-        <div className="route-glow route-glow-one" />
-        <div className="route-glow route-glow-two" />
-        <div className="safety-extinguisher">
-          <span className="safety-extinguisher-body">EXTINTOR</span>
-          <span className="safety-extinguisher-tag">A · B</span>
-        </div>
-        <div className="electrical-warning">
-          <span className="electrical-warning-symbol">⚡</span>
-          <span>RISCO ELÉTRICO</span>
-        </div>
-        <div className="assembly-point">
-          <span className="assembly-point-icon">●</span>
-          <span>PONTO DE ENCONTRO</span>
-        </div>
-      </div>
       <div className="player-content relative z-10 mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
         <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border pb-4 sm:pb-5">
           <span className="size-9 shrink-0" aria-hidden="true"><img src={brandAsset.url} alt="" className="size-full object-contain" /></span>
@@ -262,7 +240,7 @@ function Index() {
         </header>
 
         <section className="grid flex-1 content-start items-center gap-6 py-6 sm:gap-14 sm:py-10 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
-          <div className="mx-auto w-full min-w-0 max-w-[min(100%,38dvh,340px)] sm:max-w-[440px] lg:mx-0">
+          <div className="mx-auto w-full min-w-0 max-w-[min(100%,38dvh,340px)] sm:max-w-[440px] lg:col-start-1 lg:row-start-1 lg:mx-0">
             <div className={`cover-shadow cover-stage relative aspect-square overflow-hidden rounded-md bg-card ${isPlaying ? "is-playing" : ""}`}>
               <audio
                 ref={audioRef}
@@ -298,8 +276,8 @@ function Index() {
             </div>
           </div>
 
-           <section className="min-w-0 pb-8 lg:border-l lg:border-border lg:pb-0 lg:pl-16" aria-labelledby="lyrics-title">
-             <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:mb-6">
+           <section className="order-3 flex min-w-0 flex-col pb-8 lg:order-none lg:col-start-2 lg:row-start-1 lg:border-l lg:border-border lg:pb-0 lg:pl-16" aria-labelledby="lyrics-title">
+             <div className="order-2 mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:mb-6 lg:order-1">
                <div className="min-w-0">
                 <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-primary"><Music2 className="size-4" /> Siga a Rota</p>
                  <h2 id="lyrics-title" className="font-display text-2xl font-bold sm:text-3xl">Letra</h2>
@@ -309,8 +287,30 @@ function Index() {
                 {isPlaying ? "Ao vivo" : "Pausado"}
               </span>
             </div>
-              <div ref={lyricsViewportRef} className="lyrics-mask relative h-[clamp(250px,38dvh,420px)] overflow-y-auto overscroll-contain scroll-smooth pr-3 sm:h-[55vh] sm:min-h-96 sm:max-h-[620px] sm:pr-4">
-                <div className="flex flex-col gap-4 py-[19dvh] sm:gap-5 sm:py-48">
+            <div className="safety-stage order-1 mb-6 lg:order-2 lg:mb-5" aria-hidden="true">
+              <div className="safety-tape safety-tape-left" />
+              <div className="safety-tape safety-tape-right" />
+              <div className="safety-smoke safety-smoke-one" />
+              <div className="safety-smoke safety-smoke-two" />
+              <div className="emergency-sign emergency-sign-top">← SAÍDA</div>
+              <div className="emergency-sign emergency-sign-side">SAÍDA →</div>
+              <div className="route-glow route-glow-one" />
+              <div className="route-glow route-glow-two" />
+              <div className="safety-extinguisher">
+                <span className="safety-extinguisher-body">EXTINTOR</span>
+                <span className="safety-extinguisher-tag">A · B</span>
+              </div>
+              <div className="electrical-warning">
+                <span className="electrical-warning-symbol">⚡</span>
+                <span>RISCO ELÉTRICO</span>
+              </div>
+              <div className="assembly-point">
+                <span className="assembly-point-icon">●</span>
+                <span>PONTO DE ENCONTRO</span>
+              </div>
+            </div>
+              <div ref={lyricsViewportRef} className="lyrics-mask relative order-3 h-[clamp(250px,38dvh,420px)] overflow-y-auto overscroll-contain scroll-smooth pr-3 sm:h-[55vh] sm:min-h-96 sm:max-h-[620px] sm:pr-4 lg:h-[clamp(260px,42dvh,500px)] lg:min-h-0">
+                <div className="flex flex-col gap-4 py-[19dvh] sm:gap-5 sm:py-48 lg:py-24">
                 {lyrics.map((line, index) => (
                    <Button
                     key={`${line.start}-${line.text}`}
