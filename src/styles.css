@@ -165,6 +165,7 @@
     position: relative;
     width: 100%;
     height: 116px;
+    align-self: start;
     pointer-events: none;
     overflow: hidden;
     border-top: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
@@ -548,8 +549,12 @@
   .player-dock { padding-bottom: 16px; }
 }
 
+@media (min-width: 1024px) {
+  .safety-stage { margin-top: -108px; }
+}
+
 @media (max-width: 639px) {
-  .safety-stage { height: 92px; }
+  .safety-stage { height: 80px; }
   .safety-tape { opacity: 0.15; transform: scale(0.78) rotate(-33deg); }
   .safety-smoke { width: 60%; height: 120px; opacity: 0.45; filter: blur(18px); }
   .emergency-sign { min-width: 92px; height: 31px; padding: 0 9px; font-size: 7px; opacity: 0.27; }
