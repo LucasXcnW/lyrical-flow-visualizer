@@ -164,7 +164,7 @@
   .safety-stage {
     position: relative;
     width: 100%;
-    height: 116px;
+    height: 96px;
     align-self: start;
     pointer-events: none;
     overflow: hidden;
