@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Music2, Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { Music2, Pause, Play, RotateCcw, RotateCw, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import songAsset from "@/assets/siga-a-rota.mp3.asset.json";
-import coverAsset from "@/assets/siga-a-rota-capa.jpg.asset.json";
-import brandAsset from "@/assets/seguranca-do-trabalho-filled.png.asset.json";
 import { ProgressBar } from "@/components/player/ProgressBar";
 import { Button } from "@/components/ui/button";
 
@@ -101,7 +98,7 @@ function Index() {
   };
 
   const centerActiveLine = (index: number) => {
-    if (Date.now() < manualScrollUntilRef.current) return;
+    if (Date.now() < manualScrollUntilRef.current || audioRef.current?.paused) return;
     const viewport = lyricsViewportRef.current;
     const line = lyricRefs.current[index];
     if (!viewport || !line) return;
@@ -109,13 +106,14 @@ function Index() {
     const viewportRect = viewport.getBoundingClientRect();
     const offset = lineRect.top + lineRect.height / 2 - viewportRect.top - viewportRect.height / 2;
     const target = Math.max(0, Math.min(viewport.scrollHeight - viewport.clientHeight, viewport.scrollTop + offset));
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
     if (Math.abs(target - viewport.scrollTop) > 8) {
-      viewport.scrollTo({ top: target, behavior: "smooth" });
+      viewport.scrollTo({ top: target, behavior });
     }
     if (index > 0 && !hasRevealedLyricsRef.current && window.innerWidth < 1024) {
       const dockTop = document.querySelector(".player-dock")?.getBoundingClientRect().top ?? window.innerHeight;
       if (viewportRect.bottom > dockTop - 12) {
-        window.scrollBy({ top: viewportRect.top - 20, behavior: "smooth" });
+        window.scrollBy({ top: viewportRect.top - 20, behavior });
       }
       hasRevealedLyricsRef.current = true;
     }
@@ -157,6 +155,7 @@ function Index() {
     if (!isPlaying) return;
     const audio = audioRef.current;
     if (!audio) return;
+    centerActiveLine(activeIndexRef.current);
 
     const followAudio = () => {
       if (audio.paused || audio.ended) return;
@@ -191,10 +190,10 @@ function Index() {
       setPlaybackError(null);
       audio.muted = muted;
       await audio.play();
-    } catch {
-      setPlaybackError(
-        "O navegador bloqueou o som aqui. Abra a página em uma nova aba para ouvir a música.",
-      );
+    } catch (error) {
+      setPlaybackError(error instanceof DOMException && error.name === "NotAllowedError"
+        ? "O navegador bloqueou a reprodução. Toque novamente em Reproduzir."
+        : "Não foi possível reproduzir a música. Verifique o arquivo ou a conexão e tente novamente.");
     }
   };
 
@@ -210,7 +209,7 @@ function Index() {
     <main className="safety-scene relative min-h-dvh overflow-x-clip bg-background text-foreground">
       <div className="player-content relative z-10 mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
         <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border pb-4 sm:pb-5">
-          <span className="size-9 shrink-0" aria-hidden="true"><img src={brandAsset.url} alt="" className="size-full object-contain" /></span>
+          <span className="size-9 shrink-0 text-primary" aria-hidden="true"><ShieldCheck className="size-full" /></span>
           <span className="min-w-0 text-xs font-bold uppercase leading-tight tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
             <span className="block sm:inline">Técnico de Segurança do Trabalho</span>
             <span className="mt-0.5 block sm:ml-2 sm:mt-0 sm:inline">— 30</span>
@@ -222,7 +221,7 @@ function Index() {
             <div className={`cover-shadow cover-stage relative aspect-square overflow-hidden rounded-md bg-card ${isPlaying ? "is-playing" : ""}`}>
               <audio
                 ref={audioRef}
-                src={songAsset.url}
+                src="/assets/siga-a-rota.mp3"
                 preload="auto"
                 playsInline
                 controls={false}
@@ -231,9 +230,17 @@ function Index() {
                  onEnded={(event) => { updateActiveLine(event.currentTarget.currentTime); setIsPlaying(false); }}
                  onTimeUpdate={(event) => updateActiveLine(event.currentTarget.currentTime)}
                  onSeeked={(event) => updateActiveLine(event.currentTarget.currentTime)}
+                onError={(event) => {
+                  const code = event.currentTarget.error?.code;
+                  setPlaybackError(code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+                    ? "O formato do áudio não é compatível com este navegador."
+                    : code === MediaError.MEDIA_ERR_NETWORK
+                      ? "A música não pôde ser carregada. Verifique a conexão e tente novamente."
+                      : "O arquivo de áudio está indisponível ou não pôde ser reproduzido.");
+                }}
                 aria-label="Áudio de Siga a Rota"
               />
-              <img src={coverAsset.url} alt="Capa da música Siga a Rota" className="cover-art size-full object-cover" />
+              <img src="/assets/siga-a-rota-capa.jpg" alt="Capa da música Siga a Rota" className="cover-art size-full object-cover" />
               <Button
                 type="button"
                 size="player"
@@ -278,7 +285,7 @@ function Index() {
                       if (audioRef.current?.paused) void togglePlayback();
                     }}
                       aria-current={index === activeIndex ? "true" : undefined}
-                      className={`lyric-line relative min-h-11 w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-lg font-bold leading-snug hover:bg-transparent sm:h-auto sm:text-3xl ${
+                      className={`lyric-line relative h-auto min-h-11 w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-lg font-bold leading-snug hover:bg-transparent sm:text-3xl ${
                       index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
                     }`}
                   >
