@@ -54,12 +54,18 @@ export function ProgressBar({ audioRef, onSeek }: ProgressBarProps) {
     audio.addEventListener("seeked", onSeeked);
     audio.addEventListener("loadedmetadata", onMetadata);
     audio.addEventListener("durationchange", onMetadata);
+    audio.addEventListener("timeupdate", onSeeked);
+    audio.addEventListener("pause", onSeeked);
+    audio.addEventListener("ended", onSeeked);
 
     return () => {
       audio.removeEventListener("lyric-clock", onLyricClock);
       audio.removeEventListener("seeked", onSeeked);
       audio.removeEventListener("loadedmetadata", onMetadata);
       audio.removeEventListener("durationchange", onMetadata);
+      audio.removeEventListener("timeupdate", onSeeked);
+      audio.removeEventListener("pause", onSeeked);
+      audio.removeEventListener("ended", onSeeked);
     };
   }, [audioRef]);
 
