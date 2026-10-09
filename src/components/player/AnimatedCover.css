@@ -1,0 +1,92 @@
+.animated-cover {
+  --cover-cream: oklch(0.87 0.048 85);
+  --cover-terracotta: oklch(0.6 0.12 43);
+  --cover-brown: oklch(0.25 0.028 66);
+}
+
+.animated-cover-frame {
+  padding: 4px;
+  border: 1px solid color-mix(in oklch, var(--cover-terracotta) 55%, transparent);
+  border-radius: 10px;
+  background: var(--cover-brown);
+  box-shadow: 0 20px 64px oklch(0 0 0 / 0.3);
+}
+
+.animated-cover-media {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--cover-cream);
+}
+
+.animated-cover-media video,
+.animated-cover-media img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Instant handoffs between matching frames avoid a black/transparent midpoint. */
+.animated-cover-still {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.animated-cover-still[data-visible="true"] {
+  opacity: 1;
+}
+
+.animated-cover-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.animated-cover-replay {
+  flex-shrink: 1;
+  min-width: 0;
+  min-height: 44px;
+  height: auto;
+  padding: 8px 12px;
+  color: var(--cover-cream);
+  white-space: normal;
+  text-align: left;
+  transition: background-color 180ms ease;
+}
+
+.animated-cover-replay svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.animated-cover-replay:hover {
+  color: var(--cover-cream);
+  background: color-mix(in oklch, var(--cover-terracotta) 18%, transparent);
+}
+
+.animated-cover-replay:focus-visible {
+  outline: 2px solid var(--cover-cream);
+  outline-offset: 3px;
+}
+
+.animated-cover-message {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--cover-cream);
+}
+
+.animated-cover-message:not(:empty) {
+  margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-cover-replay {
+    transition: none;
+  }
+}

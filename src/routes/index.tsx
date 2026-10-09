@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Music2, Pause, Play, RotateCcw, RotateCw, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { AnimatedCover } from "@/components/player/AnimatedCover";
 import { ProgressBar } from "@/components/player/ProgressBar";
 import { Button } from "@/components/ui/button";
 
@@ -218,7 +219,7 @@ function Index() {
 
         <section className="grid flex-1 content-start items-center gap-6 py-6 sm:gap-14 sm:py-10 lg:grid-cols-[minmax(300px,0.85fr)_minmax(390px,1.15fr)] lg:gap-20 lg:pt-16">
           <div className="mx-auto w-full min-w-0 max-w-[min(100%,38dvh,340px)] sm:max-w-[440px] lg:col-start-1 lg:row-start-1 lg:mx-0">
-            <div className={`cover-shadow cover-stage relative aspect-square overflow-hidden rounded-md bg-card ${isPlaying ? "is-playing" : ""}`}>
+
               <audio
                 ref={audioRef}
                 src="/assets/siga-a-rota.mp3"
@@ -240,17 +241,17 @@ function Index() {
                 }}
                 aria-label="Áudio de Siga a Rota"
               />
-              <img src="/assets/siga-a-rota-capa.jpg" alt="Capa da música Siga a Rota" className="cover-art size-full object-cover" />
+            <AnimatedCover audioRef={audioRef}>
               <Button
                 type="button"
                 size="player"
                 onClick={togglePlayback}
-                className="absolute bottom-5 right-5 shadow-xl"
+                className="size-[56px] shrink-0 shadow-lg [&_svg]:size-[24px]"
                 aria-label={isPlaying ? "Pausar" : "Reproduzir"}
               >
                 {isPlaying ? <Pause className="size-6 fill-current" /> : <Play className="ml-0.5 size-6 fill-current" />}
               </Button>
-            </div>
+            </AnimatedCover>
              <div className="mt-4 flex items-end justify-between gap-4 sm:mt-6">
                <div className="min-w-0">
                 <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-primary"><Music2 className="size-4" /> Música</p>
@@ -313,18 +314,18 @@ function Index() {
                <p className="truncate text-xs text-muted-foreground">Lucas Tavares · Gabriel Massal · Vinícius Wendel</p>
             </div>
             <div className="col-start-2 flex items-center gap-2">
-               <Button type="button" variant="ghost" size="icon" onClick={() => seekTo((audioRef.current?.currentTime ?? 0) - 10)} aria-label="Voltar 10 segundos">
+               <Button type="button" variant="ghost" size="icon" className="size-[44px] [&_svg]:size-[22px]" onClick={() => seekTo((audioRef.current?.currentTime ?? 0) - 10)} aria-label="Voltar 10 segundos">
                 <RotateCcw className="size-5" />
               </Button>
-              <Button type="button" size="player" onClick={togglePlayback} aria-label={isPlaying ? "Pausar" : "Reproduzir"}>
+              <Button type="button" size="player" className="size-[56px] [&_svg]:size-[24px]" onClick={togglePlayback} aria-label={isPlaying ? "Pausar" : "Reproduzir"}>
                 {isPlaying ? <Pause className="size-6 fill-current" /> : <Play className="ml-0.5 size-6 fill-current" />}
               </Button>
-               <Button type="button" variant="ghost" size="icon" onClick={() => seekTo((audioRef.current?.currentTime ?? 0) + 10)} aria-label="Avançar 10 segundos">
+               <Button type="button" variant="ghost" size="icon" className="size-[44px] [&_svg]:size-[22px]" onClick={() => seekTo((audioRef.current?.currentTime ?? 0) + 10)} aria-label="Avançar 10 segundos">
                 <RotateCw className="size-5" />
               </Button>
             </div>
             <div className="justify-self-end">
-              <Button type="button" variant="ghost" size="icon" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Ativar som" : "Silenciar"}>
+              <Button type="button" variant="ghost" size="icon" className="size-[44px] [&_svg]:size-[22px]" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Ativar som" : "Silenciar"}>
                 {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
               </Button>
             </div>
