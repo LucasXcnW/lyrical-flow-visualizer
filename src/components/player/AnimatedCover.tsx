@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
-import { RotateCcw } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { COVER_PLAYBACK_START } from "@/hooks/use-audio-controls";
 import "./AnimatedCover.css";
 
 const videoSource = "/media/siga-rota-morph.mp4";
 const firstFrame = "/media/siga-rota-morph-first.webp";
 const lastFrame = "/media/siga-rota-morph-last.webp";
-type Phase = "idle" | "loading" | "playing" | "ended" | "error";
+type Phase = "idle" | "loading" | "playing" | "paused" | "ended" | "error";
 
 export function AnimatedCover({
   audioRef,
@@ -18,8 +16,6 @@ export function AnimatedCover({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const finalImageRef = useRef<HTMLImageElement>(null);
-  const replayRef = useRef<(() => void) | null>(null);
-  const automaticHandledRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [hasVideoFrame, setHasVideoFrame] = useState(false);
   const [lastFrameReady, setLastFrameReady] = useState(false);
@@ -54,8 +50,7 @@ export function AnimatedCover({
       setPhase("error");
     };
     const start = () => {
-      // Explicit playback also consumes the automatic run. Audio is never touched.
-      automaticHandledRef.current = true;
+      if (audio.paused || motion.matches) return;
       showPoster();
       const currentRequest = request;
       active = true;
@@ -71,12 +66,14 @@ export function AnimatedCover({
         fail();
       }
     };
-    const onAudioPlaying = () => {
-      if (automaticHandledRef.current) return;
-      // Consume even when reduced motion prevents autoplay, so toggling the
-      // preference or resuming/seeking audio cannot trigger a delayed surprise.
-      automaticHandledRef.current = true;
-      if (!motion.matches) start();
+    const freeze = () => {
+      if (!active) return;
+      active = false;
+      request += 1;
+      cancelFrame();
+      video.pause();
+      // Do not seek, hide the presented frame or replace it with the first poster.
+      setPhase("paused");
     };
     const onVideoPlaying = () => {
       if (!active) return;
@@ -103,14 +100,13 @@ export function AnimatedCover({
       // Do not seek or reload: retain the decoded final frame until its image is ready.
     };
     const onMotionChange = () => {
-      if (motion.matches && active) {
-        showPoster();
-        setPhase("idle");
-      }
+      if (motion.matches) freeze();
     };
 
-    replayRef.current = start;
-    audio.addEventListener("playing", onAudioPlaying);
+    audio.addEventListener(COVER_PLAYBACK_START, start);
+    audio.addEventListener("pause", freeze);
+    audio.addEventListener("ended", freeze);
+    audio.addEventListener("error", freeze);
     video.addEventListener("playing", onVideoPlaying);
     video.addEventListener("ended", onEnded);
     video.addEventListener("error", fail);
@@ -119,9 +115,11 @@ export function AnimatedCover({
       mounted = false;
       active = false;
       request += 1;
-      replayRef.current = null;
       cancelFrame();
-      audio.removeEventListener("playing", onAudioPlaying);
+      audio.removeEventListener(COVER_PLAYBACK_START, start);
+      audio.removeEventListener("pause", freeze);
+      audio.removeEventListener("ended", freeze);
+      audio.removeEventListener("error", freeze);
       video.removeEventListener("playing", onVideoPlaying);
       video.removeEventListener("ended", onEnded);
       video.removeEventListener("error", fail);
@@ -179,22 +177,10 @@ export function AnimatedCover({
           />
         </div>
       </div>
-      <div className="animated-cover-actions">
-        <Button
-          type="button"
-          variant="ghost"
-          className="animated-cover-replay"
-          onClick={() => replayRef.current?.()}
-          aria-label="Rever animação"
-        >
-          <RotateCcw aria-hidden="true" className="size-4" />
-          Rever animação
-        </Button>
-        {children}
-      </div>
+      <div className="animated-cover-actions">{children}</div>
       <p className="animated-cover-message" aria-live="polite" aria-atomic="true">
         {phase === "error"
-          ? "A animação não pôde ser reproduzida. Você pode tentar novamente em Rever animação."
+          ? "A animação não pôde ser reproduzida. Ao pausar e reproduzir a música, tentaremos novamente."
           : ""}
       </p>
     </div>

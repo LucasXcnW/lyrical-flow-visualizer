@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Music2, Pause, Play, RotateCcw, RotateCw, ShieldCheck, Volume2, VolumeX } from "lucide-react";
+import { Music2, Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { AnimatedCover } from "@/components/player/AnimatedCover";
 import { ProgressBar } from "@/components/player/ProgressBar";
 import { Button } from "@/components/ui/button";
+import { useAudioControls } from "@/hooks/use-audio-controls";
 
 const lyrics = [
   { start: 0, text: "♪" },
@@ -82,6 +83,7 @@ function Index() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const { togglePlayback, playFromLyrics, markManualSeek } = useAudioControls(audioRef, setPlaybackError);
 
   const updateActiveLine = (time: number) => {
     // The audio clock is the single source of truth. Visual transitions must never
@@ -153,10 +155,13 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    if (!isPlaying) return;
     const audio = audioRef.current;
     if (!audio) return;
-    centerActiveLine(activeIndexRef.current);
+
+    const stopFollowing = () => {
+      if (animationFrameRef.current !== null) window.cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    };
 
     const followAudio = () => {
       if (audio.paused || audio.ended) return;
@@ -169,48 +174,40 @@ function Index() {
       animationFrameRef.current = window.requestAnimationFrame(followAudio);
     };
 
-    animationFrameRef.current = window.requestAnimationFrame(followAudio);
-    return () => {
-      if (animationFrameRef.current !== null) window.cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
+    const startFollowing = () => {
+      stopFollowing();
+      centerActiveLine(activeIndexRef.current);
+      animationFrameRef.current = window.requestAnimationFrame(followAudio);
     };
-  }, [isPlaying]);
+    audio.addEventListener("playing", startFollowing);
+    audio.addEventListener("pause", stopFollowing);
+    audio.addEventListener("ended", stopFollowing);
+    return () => {
+      stopFollowing();
+      audio.removeEventListener("playing", startFollowing);
+      audio.removeEventListener("pause", stopFollowing);
+      audio.removeEventListener("ended", stopFollowing);
+    };
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
-  const togglePlayback = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (!audio.paused) {
-      audio.pause();
-      return;
-    }
-    try {
-      setPlaybackError(null);
-      audio.muted = muted;
-      await audio.play();
-    } catch (error) {
-      setPlaybackError(error instanceof DOMException && error.name === "NotAllowedError"
-        ? "O navegador bloqueou a reprodução. Toque novamente em Reproduzir."
-        : "Não foi possível reproduzir a música. Verifique o arquivo ou a conexão e tente novamente.");
-    }
-  };
-
   const seekTo = (time: number) => {
     const audio = audioRef.current;
     if (!audio) return;
     const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 169.53;
-    audio.currentTime = Math.max(0, Math.min(duration, time));
+    const target = Math.max(0, Math.min(duration, time));
+    markManualSeek(target, duration);
+    audio.currentTime = target;
     updateActiveLine(audio.currentTime);
   };
 
   return (
     <main className="safety-scene relative min-h-dvh overflow-x-clip bg-background text-foreground">
       <div className="player-content relative z-10 mx-auto flex min-h-dvh max-w-[1440px] flex-col px-4 pt-4 sm:px-8 sm:pt-6 lg:px-14 lg:pb-32">
-        <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border pb-4 sm:pb-5">
-          <span className="size-9 shrink-0 text-primary" aria-hidden="true"><ShieldCheck className="size-full" /></span>
+        <header className="flex min-h-[53px] items-center border-b border-border pb-4 sm:min-h-[57px] sm:pb-5">
           <span className="min-w-0 text-xs font-bold uppercase leading-tight tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
             <span className="block sm:inline">Técnico de Segurança do Trabalho</span>
             <span className="mt-0.5 block sm:ml-2 sm:mt-0 sm:inline">— 30</span>
@@ -283,7 +280,7 @@ function Index() {
                      variant="ghost"
                     onClick={() => {
                       seekTo(line.start);
-                      if (audioRef.current?.paused) void togglePlayback();
+                      if (audioRef.current?.paused) playFromLyrics();
                     }}
                       aria-current={index === activeIndex ? "true" : undefined}
                       className={`lyric-line relative h-auto min-h-11 w-full shrink-0 justify-start whitespace-normal rounded-none bg-transparent p-0 text-left font-display text-lg font-bold leading-snug hover:bg-transparent sm:text-3xl ${

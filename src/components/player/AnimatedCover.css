@@ -41,37 +41,9 @@
 .animated-cover-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
   margin-top: 10px;
-}
-
-.animated-cover-replay {
-  flex-shrink: 1;
-  min-width: 0;
-  min-height: 44px;
-  height: auto;
-  padding: 8px 12px;
-  color: var(--cover-cream);
-  white-space: normal;
-  text-align: left;
-  transition: background-color 180ms ease;
-}
-
-.animated-cover-replay svg {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-}
-
-.animated-cover-replay:hover {
-  color: var(--cover-cream);
-  background: color-mix(in oklch, var(--cover-terracotta) 18%, transparent);
-}
-
-.animated-cover-replay:focus-visible {
-  outline: 2px solid var(--cover-cream);
-  outline-offset: 3px;
 }
 
 .animated-cover-message {
@@ -83,10 +55,4 @@
 
 .animated-cover-message:not(:empty) {
   margin-top: 8px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animated-cover-replay {
-    transition: none;
-  }
 }

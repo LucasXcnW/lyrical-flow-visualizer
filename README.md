@@ -1,6 +1,6 @@
 # LyricSync Player
 
-A integração do vídeo à capa está na branch local `feat/siga-rota-morph`, baseada no commit publicado de `NovoPlayer`. Consulte [a implementação, a prévia e os resultados da validação](docs/animated-cover.md). Esta entrega não foi publicada; aguarda revisão e autorização.
+A versão atual está na branch local `feat/siga-rota-playback-sync`: cabeçalho sem ícone e animação controlada pelos dois botões de play e pelo loop da música. Consulte [a prévia e os resultados da validação](docs/playback-sync.md). A [integração inicial](docs/animated-cover.md) foi baseada no commit publicado de `NovoPlayer`. Esta entrega não foi publicada.
 
 me ajude a criar uma pagina visual e interativa no lovable com essa musica estilo spotify com legenda ao lado acompanhando a musica em tempo real
 
