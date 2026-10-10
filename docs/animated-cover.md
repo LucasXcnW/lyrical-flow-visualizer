@@ -1,6 +1,6 @@
 # Capa animada — Siga a Rota
 
-Este documento registra a integração inicial do commit `6637bca`. As regras atuais de play, pausa e loop estão em [Cabeçalho e animação controlada pela música](playback-sync.md), que substitui os comportamentos anteriores de execução automática única e replay independente.
+Este documento registra a integração inicial do commit `6637bca`. As regras atuais estão em [Sincronização da capa a partir de 00:12](cover-timeline.md), que substitui os comportamentos anteriores de execução automática única e replay independente.
 
 Entrega de 9 de outubro de 2026. Branch local: `feat/siga-rota-morph`.
 

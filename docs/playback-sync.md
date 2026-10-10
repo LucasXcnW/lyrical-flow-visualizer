@@ -1,5 +1,7 @@
 # Cabeçalho e animação controlada pela música
 
+Registro histórico do commit `ed76451`. A [sincronização a partir de 00:12](cover-timeline.md) substitui as regras abaixo de reinício em cada play.
+
 Branch: `feat/siga-rota-playback-sync`, baseada na integração anterior (`6637bca`). O checkout permanece em `lyrical-flow-visualizer-morph`. Esta entrega é local, sem push ou deploy.
 
 ## Comportamento atual

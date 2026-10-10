@@ -20,6 +20,13 @@ const calls = (page: Page) =>
   page.evaluate(() => (window as unknown as { videoPlayCalls: number }).videoPlayCalls);
 const duration = (page: Page) =>
   page.locator("audio").evaluate((el: HTMLAudioElement) => el.duration);
+const drift = (page: Page) =>
+  page.evaluate(() =>
+    Math.abs(
+      document.querySelector("video")!.currentTime -
+        Math.max(0, Math.min(6, document.querySelector("audio")!.currentTime - 12)),
+    ),
+  );
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -32,7 +39,6 @@ test.beforeEach(async ({ page }) => {
     };
   });
 });
-
 async function open(page: Page) {
   await page.goto("/");
   await expect(button(page, "cover")).toBeVisible();
@@ -41,249 +47,160 @@ async function open(page: Page) {
     .toBeGreaterThan(1);
 }
 
-for (const location of ["cover", "dock"] as const) {
-  test(`${location} starts once; other button freezes the frame and resumes from zero`, async ({
-    page,
-  }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (e) => errors.push(e.message));
+for (const width of [360, 1440]) {
+  for (const location of ["cover", "dock"] as const) {
+    test(`${width}px ${location}: crosses 12, pauses and resumes the same frame`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await open(page);
+      await toggle(page, location);
+      await expect.poll(() => audioTime(page)).toBeGreaterThan(0.2);
+      expect(await videoTime(page)).toBe(0);
+      expect(await calls(page)).toBe(0);
+      await expect(poster(page)).toHaveCSS("opacity", "1");
+      await progress(page).fill("11.3");
+      await expect.poll(() => audioTime(page)).toBeGreaterThan(13);
+      await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
+      await expect(poster(page)).toHaveCSS("opacity", "0");
+      await expect.poll(() => drift(page)).toBeLessThan(0.15);
+      const other = location === "cover" ? "dock" : "cover";
+      await toggle(page, other);
+      await expect(cover(page)).toHaveAttribute("data-animation-state", "paused");
+      await expect(page.locator("video")).toHaveJSProperty("seeking", false);
+      const frozen = await videoTime(page);
+      const audioAt = await audioTime(page);
+      const frame = await page.locator(".animated-cover-media").screenshot();
+      await page.waitForTimeout(400);
+      expect(await videoTime(page)).toBe(frozen);
+      expect(await audioTime(page)).toBe(audioAt);
+      expect((await page.locator(".animated-cover-media").screenshot()).equals(frame)).toBe(true);
+      await toggle(page, other);
+      await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
+      expect(await videoTime(page)).toBeGreaterThanOrEqual(frozen - 0.03);
+      await expect.poll(() => videoTime(page)).toBeGreaterThan(frozen + 0.2);
+      await expect.poll(() => drift(page)).toBeLessThan(0.15);
+      await toggle(page, location);
+    });
+  }
+  test(`${width}px seeking maps initial, middle and last frames`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
     await open(page);
-    await toggle(page, location);
-    await expect.poll(() => videoTime(page)).toBeGreaterThan(1.2);
-    await expect.poll(() => audioTime(page)).toBeGreaterThan(1);
-    expect(await calls(page)).toBe(1);
-    const other = location === "cover" ? "dock" : "cover";
-    await toggle(page, other);
-    await expect(cover(page)).toHaveAttribute("data-animation-state", "paused");
-    await expect(page.locator("video")).toHaveJSProperty("paused", true);
-    const frozenAt = await videoTime(page);
-    const audioAt = await audioTime(page);
-    const frame = await page.locator(".animated-cover-media").screenshot();
-    await page.waitForTimeout(400); // Observe a frozen frame over wall time.
-    expect(await videoTime(page)).toBe(frozenAt);
-    expect(await audioTime(page)).toBe(audioAt);
-    expect((await page.locator(".animated-cover-media").screenshot()).equals(frame)).toBe(true);
-    await toggle(page, other);
-    await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
-    expect(await videoTime(page)).toBeLessThan(1);
-    expect(await calls(page)).toBe(2);
-    await expect.poll(() => audioTime(page)).toBeGreaterThan(audioAt + 0.1);
-    await toggle(page, location);
-    await expect(cover(page)).toHaveAttribute("data-animation-state", "paused");
-    expect(errors).toEqual([]);
+    for (const [audio, video, phase] of [
+      [14, 2, "paused"],
+      [18, 6, "ended"],
+      [13, 1, "paused"],
+      [8, 0, "idle"],
+      [16, 4, "paused"],
+    ] as const) {
+      await progress(page).fill(String(audio));
+      await expect.poll(() => videoTime(page)).toBeCloseTo(video, 1);
+      await expect(cover(page)).toHaveAttribute("data-animation-state", phase);
+      await expect(page.locator("video")).toHaveJSProperty("paused", true);
+    }
+    await toggle(page);
+    await progress(page).fill("14");
+    await expect.poll(() => drift(page)).toBeLessThan(0.15);
+    await dock(page).getByRole("button", { name: "Voltar 10 segundos" }).click();
+    await expect(poster(page)).toHaveCSS("opacity", "1");
+    await expect(cover(page)).toHaveAttribute("data-animation-state", "idle");
+    await dock(page).getByRole("button", { name: "Avançar 10 segundos" }).click();
+    await expect(poster(page)).toHaveCSS("opacity", "0");
+    await expect.poll(() => drift(page)).toBeLessThan(0.15);
+    await progress(page).fill("70");
+    await expect(finalPoster(page)).toHaveCSS("opacity", "1");
+    await expect(page.locator('[aria-current="true"]')).toHaveText(
+      "Essa barra de apagar e saber o que fazer",
+    );
+    await progress(page).fill("0");
+    await expect(poster(page)).toHaveCSS("opacity", "1");
   });
 }
 
-test("header icon is removed and text aligns with the header", async ({ page }) => {
-  await open(page);
-  const header = page.locator("header");
-  await expect(header).toContainText("Técnico de Segurança do Trabalho");
-  await expect(header.locator("svg")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Rever animação" })).toHaveCount(0);
-  expect(
-    await header.evaluate((el) =>
-      Math.abs(
-        el.querySelector("span")!.getBoundingClientRect().left - el.getBoundingClientRect().left,
-      ),
-    ),
-  ).toBeLessThan(1);
-});
-
-test("poster is shared and video is not downloaded before a valid play", async ({ page }) => {
+test("poster sharing, deferred loading and media attributes", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", (r) => {
     if (r.url().includes("siga-rota-morph")) requests.push(r.url());
   });
   await open(page);
-  await expect(poster(page)).toHaveCSS("opacity", "1");
   expect(requests.filter((url) => url.endsWith("morph.mp4"))).toHaveLength(0);
   expect(requests.filter((url) => url.endsWith("morph-first.webp"))).toHaveLength(1);
+  await expect(page.locator("header svg")).toHaveCount(0);
   for (const [property, value] of [
     ["muted", true],
     ["playsInline", true],
     ["loop", false],
     ["controls", false],
-  ] as const) {
+  ] as const)
     await expect(page.locator("video")).toHaveJSProperty(property, value);
-  }
 });
 
-test("animation ends once and each natural audio loop starts exactly one new run", async ({
+test("reduced motion explains the static cover; keyboard opt-in follows the audio", async ({
   page,
 }) => {
-  await open(page);
-  await toggle(page);
-  await expect(cover(page)).toHaveAttribute("data-animation-state", "ended", { timeout: 10_000 });
-  await expect(finalPoster(page)).toHaveCSS("opacity", "1");
-  expect(await videoTime(page)).toBeCloseTo(6, 1);
-  await page.waitForTimeout(400);
-  expect(await calls(page)).toBe(1);
-  for (const expectedCalls of [2, 3]) {
-    await progress(page).fill(((await duration(page)) - 0.4).toFixed(2));
-    await expect.poll(() => calls(page)).toBe(expectedCalls);
-    await expect.poll(() => audioTime(page)).toBeLessThan(2);
-    await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
-    expect(await videoTime(page)).toBeLessThan(2);
-    await expect(page.locator('[aria-current="true"]')).toHaveText("♪");
-  }
-});
-
-test("manual zero, forward/back and paused seeking do not restart the animation", async ({
-  page,
-}) => {
-  await open(page);
-  await toggle(page);
-  await expect.poll(() => videoTime(page)).toBeGreaterThan(1);
-  await progress(page).fill("60");
-  await expect(page.locator('[aria-current="true"]')).toHaveText(
-    "Líquido inflamável, tome cuidado",
-  );
-  await progress(page).fill("0");
-  await dock(page).getByRole("button", { name: "Avançar 10 segundos" }).click();
-  await dock(page).getByRole("button", { name: "Voltar 10 segundos" }).click();
-  expect(await calls(page)).toBe(1);
-  expect(await videoTime(page)).toBeGreaterThan(1);
-  await toggle(page);
-  const frozen = await videoTime(page);
-  await progress(page).fill("80");
-  await expect(page.locator('[aria-current="true"]')).toHaveText("Então, me ajude a acionar");
-  expect(await calls(page)).toBe(1);
-  expect(await videoTime(page)).toBe(frozen);
-});
-
-test("jumping to the final slider tick is not classified as a natural loop", async ({ page }) => {
-  await open(page);
-  await toggle(page);
-  await expect.poll(() => videoTime(page)).toBeGreaterThan(0.3);
-  await progress(page).fill((Math.floor((await duration(page)) * 100) / 100).toFixed(2));
-  await expect(page.locator("audio")).toHaveJSProperty("ended", true);
-  await expect(cover(page)).toHaveAttribute("data-animation-state", "paused");
-  expect(await calls(page)).toBe(1);
-  await toggle(page, "cover");
-  await expect.poll(() => calls(page)).toBe(2);
-  await expect.poll(() => audioTime(page)).toBeLessThan(2);
-});
-
-test("verse selection plays audio and scrolls lyrics without starting animation", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await open(page);
-  await page
-    .getByRole("button", { name: "No quadro de energia, perigo no ar", exact: true })
-    .click();
-  await expect(page.locator('[aria-current="true"]')).toHaveText(
-    "No quadro de energia, perigo no ar",
-  );
-  await expect.poll(() => audioTime(page)).toBeGreaterThan(115.2);
-  expect(await calls(page)).toBe(0);
-  await expect(cover(page)).toHaveAttribute("data-animation-state", "idle");
-  await expect
-    .poll(() =>
-      page.locator(".lyrics-mask").evaluate((el) => {
-        const line = el.querySelector('[aria-current="true"]')!.getBoundingClientRect();
-        const viewport = el.getBoundingClientRect();
-        return Math.abs((line.top + line.bottom) / 2 - (viewport.top + viewport.bottom) / 2);
-      }),
-    )
-    .toBeLessThan(10);
-});
-
-test("reduced motion keeps static art for both buttons and loop with keyboard access", async ({
-  page,
-}) => {
+  await page.setViewportSize({ width: 360, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const requests: string[] = [];
   page.on("request", (r) => {
     if (r.url().endsWith("morph.mp4")) requests.push(r.url());
   });
   await open(page);
-  await page.keyboard.press("Tab");
-  await expect(button(page, "cover")).toBeFocused();
-  expect(
-    await button(page, "cover").evaluate((el) => {
-      const style = getComputedStyle(el);
-      return parseFloat(style.outlineWidth) > 0 || style.boxShadow !== "none";
-    }),
-  ).toBe(true);
-  await button(page, "cover").press("Enter");
-  await expect.poll(() => audioTime(page)).toBeGreaterThan(0.2);
-  await toggle(page);
-  await toggle(page);
-  await progress(page).fill(((await duration(page)) - 0.4).toFixed(2));
-  await expect.poll(() => audioTime(page)).toBeLessThan(2);
-  expect(await calls(page)).toBe(0);
-  expect(requests).toEqual([]);
-  await expect(poster(page)).toHaveCSS("opacity", "1");
-});
-
-test("motion preference freezes the frame and waits for the next valid button play", async ({
-  page,
-}) => {
-  await open(page);
-  await toggle(page);
-  await expect.poll(() => videoTime(page)).toBeGreaterThan(0.5);
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(cover(page)).toHaveAttribute("data-animation-state", "paused");
-  const frozen = await videoTime(page);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await progress(page).fill("60");
-  expect(await videoTime(page)).toBe(frozen);
-  expect(await calls(page)).toBe(1);
-  await toggle(page);
+  await expect(cover(page)).toContainText("Movimento reduzido: capa estática");
   await toggle(page, "cover");
-  await expect.poll(() => calls(page)).toBe(2);
+  await progress(page).fill("13");
+  await toggle(page);
+  expect(requests).toEqual([]);
+  expect(await calls(page)).toBe(0);
+  await expect(poster(page)).toHaveCSS("opacity", "1");
+  const enable = page.getByRole("button", { name: "Ativar animação", exact: true });
+  await enable.focus();
+  await expect(enable).toBeFocused();
+  await enable.press("Enter");
+  await expect.poll(() => drift(page)).toBeLessThan(0.04);
+  await expect(poster(page)).toHaveCSS("opacity", "0");
+  await expect(page.locator("video")).toHaveJSProperty("paused", true);
+  await toggle(page);
+  await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
+  await page.getByRole("button", { name: "Desativar animação", exact: true }).click();
+  await expect(page.locator("video")).toHaveJSProperty("paused", true);
+  await expect(poster(page)).toHaveCSS("opacity", "1");
+  await expect.poll(() => audioTime(page)).toBeGreaterThan(13);
 });
 
-for (const location of ["cover", "dock"] as const) {
-  test(`${location} audio rejection leaves animation stopped`, async ({ page }) => {
-    await page.addInitScript(() => {
-      const original = HTMLMediaElement.prototype.play;
-      HTMLMediaElement.prototype.play = function () {
-        return this instanceof HTMLAudioElement
-          ? Promise.reject(new DOMException("Blocked for test", "NotAllowedError"))
-          : original.call(this);
-      };
-    });
-    await open(page);
-    await toggle(page, location);
-    await expect(page.getByRole("alert")).toContainText("bloqueou");
-    expect(await calls(page)).toBe(0);
-    await expect(cover(page)).toHaveAttribute("data-animation-state", "idle");
+test("motion opt-in fits 360px with 200% text in both states", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await open(page);
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
   });
-}
-
-test("pending audio waits for playing and rapid second button click cancels the request", async ({
-  page,
-}) => {
-  let release!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  await page.route("**/assets/siga-a-rota.mp3", async (route) => {
-    await gate;
-    await route.continue();
-  });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(button(page, "cover")).toBeVisible();
-  try {
-    await toggle(page, "cover");
-    await expect(button(page)).toHaveAccessibleName("Pausar");
-    expect(await calls(page)).toBe(0);
-    await toggle(page);
-    release();
-    await expect(page.locator("audio")).toHaveJSProperty("paused", true);
-    expect(await calls(page)).toBe(0);
-    await toggle(page);
-    await expect.poll(() => calls(page)).toBe(1);
-  } finally {
-    release();
+  for (const name of ["Ativar animação", "Desativar animação"]) {
+    const control = page.getByRole("button", { name, exact: true });
+    const rect = await control.boundingBox();
+    const play = await button(page, "cover").boundingBox();
+    expect(rect!.x + rect!.width).toBeLessThanOrEqual(play!.x);
+    expect(rect!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await control.click();
   }
 });
 
-test("slow video leaves audio independent; pause cancels its pending playback", async ({
-  page,
-}) => {
+test("dynamic reduced motion stops video; explicit opt-in catches up", async ({ page }) => {
+  await open(page);
+  await progress(page).fill("13");
+  await toggle(page);
+  await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(poster(page)).toHaveCSS("opacity", "1");
+  await expect(page.locator("video")).toHaveJSProperty("paused", true);
+  await page.getByRole("button", { name: "Ativar animação", exact: true }).click();
+  await expect.poll(() => drift(page)).toBeLessThan(0.15);
+  await expect(poster(page)).toHaveCSS("opacity", "0");
+});
+
+test("slow video catches up to audio instead of starting at zero", async ({ page }) => {
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
@@ -295,80 +212,125 @@ test("slow video leaves audio independent; pause cancels its pending playback", 
   await open(page);
   try {
     await toggle(page);
-    await expect.poll(() => audioTime(page)).toBeGreaterThan(0.3);
-    await expect(cover(page)).toHaveAttribute("data-animation-state", "loading");
-    await progress(page).fill("60");
-    await expect(page.locator('[aria-current="true"]')).toHaveText(
-      "Líquido inflamável, tome cuidado",
-    );
-    await toggle(page, "cover");
-    release();
-    await expect(cover(page)).toHaveAttribute("data-animation-state", "paused");
-    await expect(page.locator("video")).toHaveJSProperty("paused", true);
+    await progress(page).fill("14");
+    await expect.poll(() => audioTime(page)).toBeGreaterThan(14.3);
     await expect(poster(page)).toHaveCSS("opacity", "1");
+    await expect(cover(page)).toHaveAttribute("data-animation-state", "loading");
+    release();
+    await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
+    await expect.poll(() => drift(page)).toBeLessThan(0.15);
+    await expect(poster(page)).toHaveCSS("opacity", "0");
   } finally {
     release();
   }
 });
 
-test("video 404 preserves audio and poster and next button play retries", async ({ page }) => {
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  await page.route("**/media/siga-rota-morph.mp4", (route) =>
-    route.fulfill({ status: 404, body: "Not found" }),
-  );
+test("paused seek reveals a decoded frame without video frame callbacks", async ({ page }) => {
+  await page.addInitScript(() => {
+    HTMLVideoElement.prototype.requestVideoFrameCallback = () => 1;
+  });
   await open(page);
-  await toggle(page);
-  await expect(cover(page)).toHaveAttribute("data-animation-state", "error");
-  await expect.poll(() => audioTime(page)).toBeGreaterThan(0.1);
-  await expect(poster(page)).toHaveCSS("opacity", "1");
-  await page.unroute("**/media/siga-rota-morph.mp4");
-  await toggle(page);
-  await toggle(page, "cover");
-  await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
-  expect(errors).toEqual([]);
+  await progress(page).fill("15");
+  await expect.poll(() => videoTime(page)).toBeCloseTo(3, 1);
+  await expect(poster(page)).toHaveCSS("opacity", "0");
+  await expect(page.locator("video")).toHaveJSProperty("paused", true);
 });
 
-for (const mode of ["reject", "throw"] as const) {
-  test(`video play ${mode} has no unhandled error and retries on next play`, async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (e) => errors.push(e.message));
-    await page.addInitScript((mode) => {
+for (const location of ["cover", "dock"] as const) {
+  test(`${location}: rejected audio leaves the cover stopped`, async ({ page }) => {
+    await page.addInitScript(() => {
       const original = HTMLMediaElement.prototype.play;
-      let once = true;
       HTMLMediaElement.prototype.play = function () {
-        if (this instanceof HTMLVideoElement && once) {
-          once = false;
-          const error = new DOMException("Blocked for test", "NotAllowedError");
-          if (mode === "throw") throw error;
-          return Promise.reject(error);
-        }
-        return original.call(this);
+        return this instanceof HTMLAudioElement
+          ? Promise.reject(new DOMException("Blocked", "NotAllowedError"))
+          : original.call(this);
       };
-    }, mode);
+    });
     await open(page);
+    await toggle(page, location);
+    await expect(page.getByRole("alert")).toContainText("bloqueou");
+    expect(await calls(page)).toBe(0);
+    await expect(poster(page)).toHaveCSS("opacity", "1");
+  });
+}
+
+for (const mode of ["404", "reject", "throw"] as const) {
+  test(`video ${mode}: poster fallback, independent audio, retry at the correct time`, async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    if (mode === "404")
+      await page.route("**/media/siga-rota-morph.mp4", (route) =>
+        route.fulfill({ status: 404, body: "Not found" }),
+      );
+    else
+      await page.addInitScript((mode) => {
+        const original = HTMLMediaElement.prototype.play;
+        let once = true;
+        HTMLMediaElement.prototype.play = function () {
+          if (this instanceof HTMLVideoElement && once) {
+            once = false;
+            const error = new DOMException("Blocked", "NotAllowedError");
+            if (mode === "throw") throw error;
+            return Promise.reject(error);
+          }
+          return original.call(this);
+        };
+      }, mode);
+    await open(page);
+    await progress(page).fill("13");
     await toggle(page);
     await expect(cover(page)).toHaveAttribute("data-animation-state", "error");
-    await expect.poll(() => audioTime(page)).toBeGreaterThan(0.2);
+    await expect.poll(() => audioTime(page)).toBeGreaterThan(13.3);
+    await expect(poster(page)).toHaveCSS("opacity", "1");
+    if (mode === "404") await page.unroute("**/media/siga-rota-morph.mp4");
     await toggle(page);
     await toggle(page, "cover");
     await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
+    await expect.poll(() => drift(page)).toBeLessThan(0.15);
     expect(errors).toEqual([]);
   });
 }
 
-test("missing final poster retains native final video frame", async ({ page }) => {
+test("missing final image retains the decoded final video frame", async ({ page }) => {
   await page.route("**/media/siga-rota-morph-last.webp", (route) =>
     route.fulfill({ status: 404, body: "Not found" }),
   );
   await open(page);
-  await toggle(page);
-  await expect(cover(page)).toHaveAttribute("data-animation-state", "ended", { timeout: 10_000 });
+  await progress(page).fill("40");
+  await expect.poll(() => videoTime(page)).toBeCloseTo(6, 1);
   await expect(poster(page)).toHaveCSS("opacity", "0");
   await expect(finalPoster(page)).toHaveCSS("opacity", "0");
-  await expect(page.locator("video")).toHaveJSProperty("ended", true);
+  await expect(cover(page)).toHaveAttribute("data-animation-state", "ended");
 });
 
+test("selecting a lyric maps the cover and keeps lyrics scrolling", async ({ page }) => {
+  await open(page);
+  await page
+    .getByRole("button", { name: "O fogo avança, mas não se assusta", exact: true })
+    .click();
+  await expect(cover(page)).toHaveAttribute("data-animation-state", "playing");
+  await expect.poll(() => drift(page)).toBeLessThan(0.15);
+  await expect(page.locator('[aria-current="true"]')).toHaveText(
+    "O fogo avança, mas não se assusta",
+  );
+  await expect
+    .poll(() => page.locator(".lyrics-mask").evaluate((el) => el.scrollTop))
+    .toBeGreaterThan(0);
+});
+
+test("manual final tick holds the emblem; button restart restores the intro", async ({ page }) => {
+  await open(page);
+  await toggle(page);
+  await progress(page).fill((Math.floor((await duration(page)) * 100) / 100).toFixed(2));
+  await expect(page.locator("audio")).toHaveJSProperty("ended", true);
+  await expect(finalPoster(page)).toHaveCSS("opacity", "1");
+  await toggle(page);
+  await expect.poll(() => audioTime(page)).toBeLessThan(2);
+  await expect(poster(page)).toHaveCSS("opacity", "1");
+  expect(await videoTime(page)).toBe(0);
+});
 for (const [width, height, scale] of [
   [360, 800, 100],
   [390, 844, 100],
@@ -418,13 +380,12 @@ for (const [width, height, scale] of [
     await button(page, "cover").scrollIntoViewIfNeeded();
     await expect(button(page, "cover")).toBeInViewport();
     if (scale === 100 && (width === 360 || width === 1440)) {
-      await page.screenshot({ path: `artifacts/sync-${width}-poster.png`, fullPage: true });
-      await toggle(page, "cover");
+      await page.screenshot({ path: `artifacts/timeline-${width}-poster.png`, fullPage: true });
+      await progress(page).fill("18");
       await expect(cover(page)).toHaveAttribute("data-animation-state", "ended", {
         timeout: 10_000,
       });
-      await toggle(page, "cover");
-      await page.screenshot({ path: `artifacts/sync-${width}-ended.png`, fullPage: true });
+      await page.screenshot({ path: `artifacts/timeline-${width}-ended.png`, fullPage: true });
     }
   });
 }

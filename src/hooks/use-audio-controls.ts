@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, type RefObject } from "react";
 
-export const COVER_PLAYBACK_START = "player-cover-start";
 type PlayOrigin = "button" | "loop" | "lyrics";
 
 /** One intent per play request; seeking/buffering events cannot create an intent. */
@@ -50,9 +49,6 @@ export function useAudioControls(
       const intent = pendingRef.current;
       if (audio.paused || !intent || intent.id !== requestRef.current) return;
       pendingRef.current = null;
-      if (intent.origin !== "lyrics") {
-        audio.dispatchEvent(new CustomEvent(COVER_PLAYBACK_START, { detail: intent.origin }));
-      }
     };
     const onEnded = () => {
       // A slider jump directly to the end is a navigation action, not a loop.

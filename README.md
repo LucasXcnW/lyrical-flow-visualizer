@@ -1,6 +1,6 @@
 # LyricSync Player
 
-A versão atual está na branch local `feat/siga-rota-playback-sync`: cabeçalho sem ícone e animação controlada pelos dois botões de play e pelo loop da música. Consulte [a prévia e os resultados da validação](docs/playback-sync.md). A [integração inicial](docs/animated-cover.md) foi baseada no commit publicado de `NovoPlayer`. Esta entrega não foi publicada.
+A versão atual está na branch local `fix/cover-audio-timeline`: animação da capa sincronizada ao áudio a partir de 00:12, com pausa, retomada, buscas e loop. Consulte [a correção e sua validação](docs/cover-timeline.md). A [integração inicial](docs/animated-cover.md) foi baseada no commit publicado de `NovoPlayer`. Esta entrega não foi publicada.
 
 me ajude a criar uma pagina visual e interativa no lovable com essa musica estilo spotify com legenda ao lado acompanhando a musica em tempo real
 
